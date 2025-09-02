@@ -48,11 +48,12 @@ const MyItineraries = () => {
       ) : (
         <ul>
           {itineraries.map(itinerary => (
-            <li key={itinerary.id}>
-              {/* No futuro, este será um link para ver os detalhes do roteiro */}
-              {itinerary.name}
-            </li>
-          ))}
+  <li key={itinerary.id}>
+    <Link to={`/roteiro/${itinerary.id}`}>
+      {itinerary.name}
+    </Link>
+  </li>
+))}
         </ul>
       )}
     </div>

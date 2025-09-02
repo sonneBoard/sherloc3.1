@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from './App.jsx'
 import LocationDetail from './pages/LocationDetail.jsx'; // Importamos nossa nova página
 import MyItineraries from './pages/MyItineraries.jsx';
+import ItineraryDetail from './pages/ItineraryDetail.jsx';
 import './index.css'
 import 'leaflet/dist/leaflet.css';
 
@@ -21,7 +22,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/local/:id" element={<LocationDetail />} />
         {/* 2. Verifique se esta linha da rota existe e está escrita corretamente: */}
         <Route path="/roteiros" element={<MyItineraries />} />
-
+        {/* VERIFIQUE SE ESTA LINHA DE ROTA EXISTE E ESTÁ ESCRITA CORRETAMENTE: */}
+        <Route path="/roteiro/:id" element={<ItineraryDetail />} /> 
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
