@@ -1,73 +1,86 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-const ItineraryDetail = () => {
-  const { id } = useParams();
-  const [itinerary, setItinerary] = useState(null);
+const MyItineraries = () => {
+  const [itineraries, setItineraries] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchItineraryDetails = async () => {
+    const fetchItineraries = async () => {
       try {
-        const { data, error } = await supabase
-          .from('itineraries')
-          .select(`
-            id,
-            name,
-            itinerary_locations (
-              locations (
-                id,
-                name,
-                category
-              )
-            )
-          `)
-          .eq('id', id)
-          .single();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data, error } = await supabase
+            .from('itineraries')
+            .select('id, name')
+            .eq('created_by', user.id)
+            .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        
-        if (data) {
-          setItinerary(data);
+          if (error) throw error;
+          if (data) setItineraries(data);
         }
       } catch (error) {
-        console.error("Erro ao buscar detalhes do roteiro:", error);
+        console.error("Erro ao buscar roteiros:", error);
       } finally {
         setLoading(false);
       }
     };
+    fetchItineraries();
+  }, []);
 
-    fetchItineraryDetails();
-  }, [id]);
+  // --- NOVA FUNÇÃO PARA APAGAR UM ROTEIRO ---
+  const handleDeleteItinerary = async (itineraryId) => {
+    if (window.confirm("Tem certeza que deseja apagar este roteiro permanentemente? Esta ação não pode ser desfeita.")) {
+      try {
+        // Comando para deletar da tabela 'itineraries' o roteiro com o ID correspondente
+        const { error } = await supabase
+          .from('itineraries')
+          .delete()
+          .eq('id', itineraryId);
+
+        if (error) throw error;
+
+        // Atualiza a lista na tela removendo o roteiro que foi apagado
+        // Isso evita a necessidade de buscar os dados do banco novamente
+        setItineraries(itineraries.filter(it => it.id !== itineraryId));
+        alert("Roteiro apagado com sucesso!");
+
+      } catch (error) {
+        alert("Erro ao apagar o roteiro.");
+        console.error("Erro ao apagar o roteiro:", error);
+      }
+    }
+  };
+  // -----------------------------------------
 
   if (loading) {
-    return <div>Carregando detalhes do roteiro...</div>;
-  }
-
-  if (!itinerary) {
-    return <div>Roteiro não encontrado.</div>;
+    return <div>Carregando seus roteiros...</div>;
   }
 
   return (
     <div style={{ padding: '20px' }}>
-      <Link to="/roteiros">&larr; Voltar para Meus Roteiros</Link>
-      <h1>Roteiro: {itinerary.name}</h1>
+      <Link to="/">&larr; Voltar para o Mapa</Link>
+      <h1>Meus Roteiros</h1>
       
-      <h3>Locais neste Roteiro:</h3>
-      {itinerary.itinerary_locations.length > 0 ? (
+      {itineraries.length === 0 ? (
+        <p>Você ainda não criou nenhum roteiro.</p>
+      ) : (
         <ul>
-          {itinerary.itinerary_locations.map(item => (
-            <li key={item.locations.id}>
-              {item.locations.name} ({item.locations.category})
+          {itineraries.map(itinerary => (
+            <li key={itinerary.id} style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Link to={`/roteiro/${itinerary.id}`}>{itinerary.name}</Link>
+              {/* --- NOVO BOTÃO DE APAGAR --- */}
+              <button onClick={() => handleDeleteItinerary(itinerary.id)} style={{ marginLeft: '20px' }}>
+                Apagar
+              </button>
+              {/* ------------------------- */}
             </li>
           ))}
         </ul>
-      ) : (
-        <p>Ainda não há locais neste roteiro.</p>
       )}
     </div>
   );
 };
 
-export default ItineraryDetail;
+export default MyItineraries;

@@ -96,7 +96,7 @@ function App() {
       <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, background: 'white', padding: '10px', borderRadius: '5px' }}>
         <Link to="/roteiros">Meus Roteiros</Link>
         <span style={{ margin: '0 10px' }}>|</span>
-        <span>{session.user.email}</span>
+        <Link to="/perfil">{session.user.email}</Link>
         <button style={{ marginLeft: '10px' }} onClick={() => supabase.auth.signOut()}>
           Logout
         </button>
