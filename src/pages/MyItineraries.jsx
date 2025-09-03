@@ -10,8 +10,6 @@ const ItineraryDetail = () => {
   useEffect(() => {
     const fetchItineraryDetails = async () => {
       try {
-        // --- CONSULTA CORRIGIDA ---
-        // A consulta agora passa pela tabela de junção para encontrar os locais.
         const { data, error } = await supabase
           .from('itineraries')
           .select(`
@@ -27,7 +25,6 @@ const ItineraryDetail = () => {
           `)
           .eq('id', id)
           .single();
-        // -------------------------
 
         if (error) throw error;
         
@@ -49,7 +46,7 @@ const ItineraryDetail = () => {
   }
 
   if (!itinerary) {
-    return <div>mamaguebo.</div>;
+    return <div>Roteiro não encontrado.</div>;
   }
 
   return (
@@ -58,8 +55,6 @@ const ItineraryDetail = () => {
       <h1>Roteiro: {itinerary.name}</h1>
       
       <h3>Locais neste Roteiro:</h3>
-      {/* --- EXIBIÇÃO CORRIGIDA --- */}
-      {/* Acessamos os locais através da tabela de junção */}
       {itinerary.itinerary_locations.length > 0 ? (
         <ul>
           {itinerary.itinerary_locations.map(item => (
