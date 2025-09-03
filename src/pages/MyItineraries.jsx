@@ -1,63 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-const MyItineraries = () => {
-  const [itineraries, setItineraries] = useState([]);
+const ItineraryDetail = () => {
+  const { id } = useParams();
+  const [itinerary, setItinerary] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchItineraries = async () => {
+    const fetchItineraryDetails = async () => {
       try {
-        // Pega o usuário logado
-        const { data: { user } } = await supabase.auth.getUser();
-
-        // Busca na tabela 'itineraries' todos os roteiros criados pelo usuário
+        // --- CONSULTA CORRIGIDA ---
+        // A consulta agora passa pela tabela de junção para encontrar os locais.
         const { data, error } = await supabase
           .from('itineraries')
-          .select('id, name') // Só precisamos do id e do nome por enquanto
-          .eq('created_by', user.id)
-          .order('created_at', { ascending: false }); // Mostra os mais recentes primeiro
+          .select(`
+            id,
+            name,
+            itinerary_locations (
+              locations (
+                id,
+                name,
+                category
+              )
+            )
+          `)
+          .eq('id', id)
+          .single();
+        // -------------------------
 
         if (error) throw error;
-
+        
         if (data) {
-          setItineraries(data);
+          setItinerary(data);
         }
       } catch (error) {
-        console.error("Erro ao buscar roteiros:", error);
+        console.error("Erro ao buscar detalhes do roteiro:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchItineraries();
-  }, []);
+    fetchItineraryDetails();
+  }, [id]);
 
   if (loading) {
-    return <div>Carregando seus roteiros...</div>;
+    return <div>Carregando detalhes do roteiro...</div>;
+  }
+
+  if (!itinerary) {
+    return <div>mamaguebo.</div>;
   }
 
   return (
     <div style={{ padding: '20px' }}>
-      <Link to="/">&larr; Voltar para o Mapa</Link>
-      <h1>Meus Roteiros</h1>
-
-      {itineraries.length === 0 ? (
-        <p>Você ainda não criou nenhum roteiro.</p>
-      ) : (
+      <Link to="/roteiros">&larr; Voltar para Meus Roteiros</Link>
+      <h1>Roteiro: {itinerary.name}</h1>
+      
+      <h3>Locais neste Roteiro:</h3>
+      {/* --- EXIBIÇÃO CORRIGIDA --- */}
+      {/* Acessamos os locais através da tabela de junção */}
+      {itinerary.itinerary_locations.length > 0 ? (
         <ul>
-          {itineraries.map(itinerary => (
-  <li key={itinerary.id}>
-    <Link to={`/roteiro/${itinerary.id}`}>
-      {itinerary.name}
-    </Link>
-  </li>
-))}
+          {itinerary.itinerary_locations.map(item => (
+            <li key={item.locations.id}>
+              {item.locations.name} ({item.locations.category})
+            </li>
+          ))}
         </ul>
+      ) : (
+        <p>Ainda não há locais neste roteiro.</p>
       )}
     </div>
   );
 };
 
-export default MyItineraries;
+export default ItineraryDetail;
