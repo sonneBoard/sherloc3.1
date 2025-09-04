@@ -56,35 +56,59 @@ function App() {
   }
 
   if (!session) {
-    // ... (o código do formulário de login continua o mesmo)
     return (
-      <div style={{ padding: '50px' }}>
-        <h2>Bem-vindo ao Sherloc</h2>
-        <p>Faça seu login ou cadastre-se</p>
-        <form>
-          <input
-            type="email"
-            placeholder="Seu email"
-            value={email}
-            required
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Sua senha"
-            value={password}
-            required
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <div>
-            <button disabled={loading} onClick={handleLogin}>
-              {loading ? 'Carregando...' : 'Login'}
-            </button>
-            <button disabled={loading} onClick={handleSignUp}>
-              {loading ? 'Carregando...' : 'Cadastrar'}
-            </button>
-          </div>
-        </form>
+      // Container principal com fundo escuro, centralizado na tela
+     <div className="bg-sherloc-dark min-h-screen flex flex-col items-center justify-center font-lexend text-sherloc-text">
+        
+        {/* Card do formulário */}
+        <div className="bg-sherloc-dark-2 p-8 rounded-lg shadow-lg w-full max-w-md">
+          <h2 className="font-poppins text-3xl font-bold text-center mb-2">Bem-vindo ao Sherloc</h2>
+          <p className="text-center text-gray-400 mb-6">Faça seu login ou cadastre-se para começar a explorar.</p>
+          
+          <form>
+            <div className="mb-4">
+              <label htmlFor="email" className="block mb-2 text-sm font-medium">Email</label>
+              <input
+                id="email"
+                className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-sherloc-yellow focus:border-sherloc-yellow block w-full p-2.5"
+                type="email"
+                placeholder="Seu email"
+                value={email}
+                required
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="mb-6">
+              <label htmlFor="password" className="block mb-2 text-sm font-medium">Senha</label>
+              <input
+                id="password"
+                className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-sherloc-yellow focus:border-sherloc-yellow block w-full p-2.5"
+                type="password"
+                placeholder="Sua senha"
+                value={password}
+                required
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex space-x-4">
+              <button 
+                disabled={loading} 
+                onClick={handleLogin}
+                className="w-full text-black bg-sherloc-yellow hover:bg-yellow-400 font-bold rounded-lg text-sm px-5 py-2.5 text-center transition-colors"
+              >
+                {loading ? 'Carregando...' : 'Login'}
+              </button>
+              <button 
+                disabled={loading} 
+                onClick={handleSignUp}
+                className="w-full text-white bg-transparent border border-gray-600 hover:bg-gray-700 font-bold rounded-lg text-sm px-5 py-2.5 text-center transition-colors"
+              >
+                {loading ? 'Carregando...' : 'Cadastrar'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     )
   }
