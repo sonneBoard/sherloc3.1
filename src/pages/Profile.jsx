@@ -15,91 +15,84 @@ const Profile = () => {
         if (!session) throw new Error("Usuário não autenticado");
         setSession(session);
 
-        // --- CONSULTA ATUALIZADA ---
-        // Agora pedimos os dados do perfil E também os badges relacionados
         const { data, error, status } = await supabase
           .from('profiles')
-          .select(`
-            username,
-            xp,
-            level,
-            user_badges (
-              badges (
-                name,
-                description,
-                image_url
-              )
-            )
-          `)
+          .select(`username, xp, level, user_badges(badges(name, description, image_url))`)
           .eq('id', session.user.id)
           .single();
-        // -------------------------
 
-        if (error && status !== 406) {
-          throw error;
-        }
-
-        if (data) {
-          setProfile(data);
-        }
+        if (error && status !== 406) throw error;
+        if (data) setProfile(data);
       } catch (error) {
         alert(error.message);
       } finally {
         setLoading(false);
       }
     };
-
     getProfileData();
   }, []);
 
   if (loading) {
-    return <div>Carregando perfil...</div>;
+    return <div className="bg-sherloc-dark min-h-screen text-sherloc-text p-8">Carregando perfil...</div>;
   }
 
   if (!profile) {
-    return <div>Perfil não encontrado.</div>;
+    return <div className="bg-sherloc-dark min-h-screen text-sherloc-text p-8">Perfil não encontrado.</div>;
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <Link to="/">&larr; Voltar para o Mapa</Link>
-      <h1>Perfil do Usuário</h1>
-      
-      <div>
-        <p><strong>Email:</strong> {session.user.email}</p>
-        <p><strong>Username:</strong> {profile.username || 'Não definido'}</p>
-        <p><strong>XP:</strong> {profile.xp}</p>
-        <p><strong>Nível:</strong> {profile.level}</p>
+    // Container principal da página
+    <div className="bg-sherloc-dark min-h-screen text-sherloc-text font-lexend p-8">
+      <div className="max-w-4xl mx-auto">
+        <Link to="/" className="text-sherloc-yellow hover:underline mb-6 inline-block">&larr; Voltar para o Mapa</Link>
+        <h1 className="font-poppins text-4xl font-bold mb-6">Perfil do Usuário</h1>
+        
+        {/* Card com as informações do usuário */}
+        <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-400">Email</p>
+              <p className="text-lg">{session.user.email}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Username</p>
+              <p className="text-lg">{profile.username || 'Não definido'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">XP</p>
+              <p className="text-lg font-poppins font-bold text-sherloc-yellow">{profile.xp}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Nível</p>
+              <p className="text-lg font-poppins font-bold text-sherloc-yellow">{profile.level}</p>
+            </div>
+          </div>
+        </div>
+
+        <h2 className="font-poppins text-3xl font-bold mb-4">Minhas Conquistas</h2>
+        
+        {/* Seção dos Badges */}
+        {profile.user_badges.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {profile.user_badges.map(userBadge => (
+              // Card para cada badge
+              <div key={userBadge.badges.name} className="bg-sherloc-dark-2 p-4 rounded-lg shadow-lg flex items-center space-x-4">
+                <img 
+                  src={userBadge.badges.image_url || 'https://via.placeholder.com/50'} // Imagem placeholder
+                  alt={userBadge.badges.name} 
+                  className="w-16 h-16 rounded-full bg-sherloc-dark" 
+                />
+                <div>
+                  <h3 className="font-poppins font-bold text-sherloc-yellow">{userBadge.badges.name}</h3>
+                  <p className="text-sm text-gray-400">{userBadge.badges.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="bg-sherloc-dark-2 p-4 rounded-lg">Você ainda não ganhou nenhum badge.</p>
+        )}
       </div>
-
-      <hr style={{ margin: '20px 0' }} />
-
-      <h2>Minhas Conquistas (Badges)</h2>
-      
-      {/* --- LÓGICA PARA EXIBIR OS BADGES --- */}
-      {profile.user_badges.length > 0 ? (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {profile.user_badges.map(userBadge => (
-            <li key={userBadge.badges.name} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px', borderRadius: '5px' }}>
-              {/* Futuramente, aqui podemos usar a profile.user_badges.badges.image_url */}
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-  <img 
-    src={userBadge.badges.image_url} 
-    alt={userBadge.badges.name} 
-    style={{ width: '50px', height: '50px', marginRight: '15px', borderRadius: '50%' }} 
-  />
-  <div>
-    <strong>{userBadge.badges.name}</strong>
-    <p style={{ margin: 0 }}>{userBadge.badges.description}</p>
-  </div>
-</div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Você ainda não ganhou nenhum badge.</p>
-      )}
-      {/* ------------------------------------ */}
     </div>
   );
 };

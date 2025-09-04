@@ -8,6 +8,7 @@ import ItineraryDetail from './pages/ItineraryDetail.jsx';
 import './index.css'
 import 'leaflet/dist/leaflet.css';
 import Profile from './pages/Profile.jsx'; 
+import Dashboard from './pages/Dashboard.jsx'; // <-- IMPORTAR NOVA PÁGINA
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -26,6 +27,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         {/* VERIFIQUE SE ESTA LINHA DE ROTA EXISTE E ESTÁ ESCRITA CORRETAMENTE: */}
         <Route path="/roteiro/:id" element={<ItineraryDetail />} /> 
         <Route path="/perfil" element={<Profile />} /> {/* <-- ADICIONAR NOVA ROTA */}
+          <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,

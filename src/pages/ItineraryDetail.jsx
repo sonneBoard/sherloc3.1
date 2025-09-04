@@ -7,22 +7,32 @@ const ItineraryDetail = () => {
   const [itinerary, setItinerary] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Criamos uma função separada para poder chamá-la novamente após a exclusão
   const fetchItineraryDetails = async () => {
+    // A função de busca de dados não precisa de setLoading, pois o 'loading' principal já trata disso
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('itineraries')
         .select(`id, name, itinerary_locations(locations(id, name, category))`)
         .eq('id', id)
         .single();
 
-      if (error) throw error;
-      if (data) setItinerary(data);
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.warn('Roteiro não encontrado com o id:', id);
+          setItinerary(null);
+        } else {
+          throw error;
+        }
+      }
+      
+      if (data) {
+        setItinerary(data);
+      }
     } catch (error) {
       console.error("Erro ao buscar detalhes do roteiro:", error);
     } finally {
-      setLoading(false);
+      // Apenas o 'loading' principal deve controlar o estado final
+      if (loading) setLoading(false);
     }
   };
 
@@ -30,13 +40,9 @@ const ItineraryDetail = () => {
     fetchItineraryDetails();
   }, [id]);
 
-  // --- NOVA FUNÇÃO PARA REMOVER UM LOCAL ---
   const handleRemoveLocation = async (locationIdToRemove) => {
-    // Pede confirmação ao usuário antes de apagar
     if (window.confirm("Tem certeza que deseja remover este local do roteiro?")) {
       try {
-        // Comando para deletar da tabela de junção 'itinerary_locations'
-        // a linha que conecta o roteiro atual (id) com o local a ser removido.
         const { error } = await supabase
           .from('itinerary_locations')
           .delete()
@@ -45,7 +51,7 @@ const ItineraryDetail = () => {
         
         if (error) throw error;
 
-        // Atualiza a lista de locais na tela sem precisar recarregar a página
+        // Atualiza a tela buscando os dados novamente para refletir a remoção
         fetchItineraryDetails();
         alert("Local removido com sucesso!");
 
@@ -55,38 +61,51 @@ const ItineraryDetail = () => {
       }
     }
   };
-  // ------------------------------------
 
   if (loading) {
-    return <div>Carregando detalhes do roteiro...</div>;
+    return <div className="bg-sherloc-dark min-h-screen text-sherloc-text p-8">Carregando detalhes do roteiro...</div>;
   }
 
   if (!itinerary) {
-    return <div>Roteiro não encontrado.</div>;
+    return (
+      <div className="bg-sherloc-dark min-h-screen text-sherloc-text font-lexend p-8">
+          <Link to="/roteiros">&larr; Voltar para Meus Roteiros</Link>
+          <h1 className="font-poppins text-4xl font-bold mt-4">Roteiro não encontrado.</h1>
+          <p>O roteiro que você está tentando acessar pode ter sido excluído ou o link está incorreto.</p>
+      </div>
+    );
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <Link to="/roteiros">&larr; Voltar para Meus Roteiros</Link>
-      <h1>Roteiro: {itinerary.name}</h1>
-      
-      <h3>Locais neste Roteiro:</h3>
-      {itinerary.itinerary_locations.length > 0 ? (
-        <ul>
-          {itinerary.itinerary_locations.map(item => (
-            <li key={item.locations.id} style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>{item.locations.name} ({item.locations.category})</span>
-              {/* --- NOVO BOTÃO DE REMOVER --- */}
-              <button onClick={() => handleRemoveLocation(item.locations.id)}>
-                Remover
-              </button>
-              {/* --------------------------- */}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Ainda não há locais neste roteiro.</p>
-      )}
+    // Container principal da página
+    <div className="bg-sherloc-dark min-h-screen text-sherloc-text font-lexend p-8">
+      <div className="max-w-4xl mx-auto">
+        <Link to="/roteiros" className="text-sherloc-yellow hover:underline mb-6 inline-block">&larr; Voltar para Meus Roteiros</Link>
+        <h1 className="font-poppins text-4xl font-bold mb-2">Roteiro: {itinerary.name}</h1>
+        
+        <h3 className="font-poppins text-2xl font-bold mt-6 mb-4">Locais neste Roteiro:</h3>
+        {itinerary.itinerary_locations.length > 0 ? (
+          <ul className="space-y-4">
+            {itinerary.itinerary_locations.map(item => (
+              // Card para cada local
+              <li key={item.locations.id} className="bg-sherloc-dark-2 p-4 rounded-lg flex justify-between items-center shadow-lg">
+                <div>
+                  <p className="font-poppins font-semibold text-lg">{item.locations.name}</p>
+                  <p className="text-sm text-gray-400">{item.locations.category}</p>
+                </div>
+                <button 
+                  onClick={() => handleRemoveLocation(item.locations.id)}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm"
+                >
+                  Remover
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="bg-sherloc-dark-2 p-4 rounded-lg">Ainda não há locais neste roteiro. Adicione locais a partir do mapa!</p>
+        )}
+      </div>
     </div>
   );
 };
