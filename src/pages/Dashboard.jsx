@@ -1,76 +1,100 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { LuBook, LuMapPin, LuAward } from "react-icons/lu";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    itineraries: 0,
-    locations: 0,
-    badges: 0,
-  });
+  const [stats, setStats] = useState({ itineraries: 0, locations: 0, badges: 0 });
+  const [recentItineraries, setRecentItineraries] = useState([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        // Usamos o método .rpc() para chamar nossas funções PostgreSQL
-        const { data: itinerariesCount, error: itinerariesError } = await supabase.rpc('get_total_itineraries');
-        if (itinerariesError) throw itinerariesError;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-        const { data: locationsCount, error: locationsError } = await supabase.rpc('get_total_locations_in_itineraries');
-        if (locationsError) throw locationsError;
+        // Buscas em paralelo
+        const [statsPromise, recentItinerariesPromise] = await Promise.all([
+          Promise.all([
+            supabase.rpc('get_total_itineraries'),
+            supabase.rpc('get_total_locations_in_itineraries'),
+            supabase.rpc('get_total_badges'),
+          ]),
+          supabase.from('itineraries').select('id, name').eq('created_by', user.id).order('created_at', { ascending: false }).limit(5)
+        ]);
 
-        const { data: badgesCount, error: badgesError } = await supabase.rpc('get_total_badges');
-        if (badgesError) throw badgesError;
+        const [
+          { data: itinerariesCount, error: itinerariesError },
+          { data: locationsCount, error: locationsError },
+          { data: badgesCount, error: badgesError },
+        ] = statsPromise;
+        
+        const { data: recentData, error: recentError } = recentItinerariesPromise;
 
-        setStats({
-          itineraries: itinerariesCount,
-          locations: locationsCount,
-          badges: badgesCount,
-        });
+        if (itinerariesError || locationsError || badgesError || recentError) {
+            console.error(itinerariesError || locationsError || badgesError || recentError);
+            return;
+        }
+
+        setStats({ itineraries: itinerariesCount, locations: locationsCount, badges: badgesCount });
+        setRecentItineraries(recentData);
 
       } catch (error) {
-        console.error("Erro ao buscar estatísticas:", error);
+        console.error("Erro ao buscar dados do dashboard:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
   if (loading) {
-    return <div className="bg-sherloc-dark min-h-screen text-sherloc-text p-8">Carregando seu dashboard...</div>;
+    return <div className="text-center p-4">Carregando...</div>;
   }
 
   return (
-    <div className="bg-sherloc-dark min-h-screen text-sherloc-text font-lexend p-8">
-      <div className="max-w-4xl mx-auto">
-        <Link to="/" className="text-sherloc-yellow hover:underline mb-6 inline-block">&larr; Voltar para o Mapa</Link>
-        <h1 className="font-poppins text-4xl font-bold mb-6">Dashboard</h1>
-
-        {/* Grid para os cards de estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-          {/* Card de Roteiros */}
-          <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg">
-            <h2 className="font-poppins text-lg font-bold text-gray-400">Roteiros Criados</h2>
-            <p className="font-poppins text-5xl font-bold text-sherloc-yellow mt-2">{stats.itineraries}</p>
+    <div className="font-lexend">
+      {/* Grid para os cards de estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg flex items-center space-x-4">
+          <div className="bg-blue-500/20 p-3 rounded-lg"><LuBook className="text-blue-400" size={24}/></div>
+          <div>
+            <p className="text-gray-400 text-sm">Roteiros Criados</p>
+            <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.itineraries}</p>
           </div>
-
-          {/* Card de Locais */}
-          <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg">
-            <h2 className="font-poppins text-lg font-bold text-gray-400">Locais Salvos</h2>
-            <p className="font-poppins text-5xl font-bold text-sherloc-yellow mt-2">{stats.locations}</p>
-          </div>
-
-          {/* Card de Badges */}
-          <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg">
-            <h2 className="font-poppins text-lg font-bold text-gray-400">Badges Conquistados</h2>
-            <p className="font-poppins text-5xl font-bold text-sherloc-yellow mt-2">{stats.badges}</p>
-          </div>
-
         </div>
+        <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg flex items-center space-x-4">
+          <div className="bg-orange-500/20 p-3 rounded-lg"><LuMapPin className="text-orange-400" size={24}/></div>
+          <div>
+            <p className="text-gray-400 text-sm">Locais Salvos</p>
+            <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.locations}</p>
+          </div>
+        </div>
+        <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg flex items-center space-x-4">
+          <div className="bg-green-500/20 p-3 rounded-lg"><LuAward className="text-green-400" size={24}/></div>
+          <div>
+            <p className="text-gray-400 text-sm">Badges Conquistados</p>
+            <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.badges}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Módulo de Roteiros Recentes */}
+      <div className="mt-8 bg-sherloc-dark-2 p-6 rounded-lg shadow-lg">
+        <h2 className="font-poppins text-xl font-bold mb-4">Roteiros Recentes</h2>
+        {recentItineraries.length > 0 ? (
+          <ul className="space-y-2">
+            {recentItineraries.map(it => (
+              <li key={it.id} className="text-gray-300 hover:text-sherloc-yellow">
+                <Link to={`/roteiro/${it.id}`}>{it.name}</Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-400">Crie seu primeiro roteiro para vê-lo aqui.</p>
+        )}
       </div>
     </div>
   );

@@ -1,34 +1,41 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import App from './App.jsx'
-import LocationDetail from './pages/LocationDetail.jsx'; // Importamos nossa nova página
+
+// Importações
+import App from './App.jsx';
+import MainLayout from './components/MainLayout.jsx';
+import LandingPage from './pages/LandingPage.jsx'; // Nova Landing Page
+import LoginPage from './pages/LoginPage.jsx';     // Nova Página de Login
+import Dashboard from './pages/Dashboard.jsx';
 import MyItineraries from './pages/MyItineraries.jsx';
 import ItineraryDetail from './pages/ItineraryDetail.jsx';
-import './index.css'
+import Profile from './pages/Profile.jsx';
+import LocationDetail from './pages/LocationDetail.jsx';
+
+import './index.css';
 import 'leaflet/dist/leaflet.css';
-import Profile from './pages/Profile.jsx'; 
-import Dashboard from './pages/Dashboard.jsx'; // <-- IMPORTAR NOVA PÁGINA
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* O BrowserRouter é o componente que ativa o roteamento */}
     <BrowserRouter>
-      {/* O Routes agrupa todas as nossas rotas */}
       <Routes>
-        {/* Rota 1: A raiz do site ("/") renderiza nosso App principal (o mapa) */}
-        <Route path="/" element={<App />} />
-        
-        {/* Rota 2: Uma URL como "/local/123" renderiza a página de detalhes */}
-        {/* O ":id" é um parâmetro dinâmico, ou seja, pode ser qualquer coisa */}
-        <Route path="/local/:id" element={<LocationDetail />} />
-        {/* 2. Verifique se esta linha da rota existe e está escrita corretamente: */}
-        <Route path="/roteiros" element={<MyItineraries />} />
-        {/* VERIFIQUE SE ESTA LINHA DE ROTA EXISTE E ESTÁ ESCRITA CORRETAMENTE: */}
-        <Route path="/roteiro/:id" element={<ItineraryDetail />} /> 
-        <Route path="/perfil" element={<Profile />} /> {/* <-- ADICIONAR NOVA ROTA */}
+        {/* Rota principal agora é a Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* Rota dedicada para o Login */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Rotas protegidas que usam o Layout com Sidebar */}
+        <Route element={<MainLayout />}>
+          <Route path="/mapa" element={<App />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/roteiros" element={<MyItineraries />} />
+          <Route path="/roteiro/:id" element={<ItineraryDetail />} />
+          <Route path="/perfil" element={<Profile />} />
+          <Route path="/local/:id" element={<LocationDetail />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
-)
+);
