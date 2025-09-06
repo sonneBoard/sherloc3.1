@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { toast } from 'react-hot-toast';
 
-// --- COMPONENTE MODAL ATUALIZADO COM TAILWIND ---
+// --- COMPONENTE MODAL ATUALIZADO COM NOTIFICAÇÕES TOAST ---
 const AddToItineraryModal = ({ isOpen, onClose, locationId, locationName }) => {
   const [loading, setLoading] = useState(true);
   const [existingItineraries, setExistingItineraries] = useState([]);
@@ -31,7 +32,8 @@ const AddToItineraryModal = ({ isOpen, onClose, locationId, locationName }) => {
 
   const handleCreateAndAdd = async () => {
     if (newItineraryName.trim() === '') {
-      alert('Por favor, dê um nome ao novo roteiro.');
+      // Alterado para toast.error
+      toast.error('Por favor, dê um nome ao novo roteiro.');
       return;
     }
     try {
@@ -44,10 +46,12 @@ const AddToItineraryModal = ({ isOpen, onClose, locationId, locationName }) => {
       const { error: locationError } = await supabase.from('itinerary_locations').insert({ itinerary_id: itineraryData.id, location_id: locationId, visit_order: 1 });
       if (locationError) throw locationError;
       
-      alert(`'${locationName}' foi adicionado ao novo roteiro '${newItineraryName}'!`);
+      // Alterado para toast.success
+      toast.success(`'${locationName}' foi adicionado ao novo roteiro '${newItineraryName}'!`);
       onClose();
     } catch (error) {
-      alert(error.message);
+      // Alterado para toast.error
+      toast.error(error.message);
     }
   };
 
@@ -56,7 +60,8 @@ const AddToItineraryModal = ({ isOpen, onClose, locationId, locationName }) => {
         const { data: existing, error: checkError } = await supabase.from('itinerary_locations').select().eq('itinerary_id', itineraryId).eq('location_id', locationId);
         if (checkError) throw checkError;
         if (existing.length > 0) {
-            alert('Este local já está neste roteiro.');
+            // Alterado para toast.error, pois é um aviso de falha
+            toast.error('Este local já está neste roteiro.');
             return;
         }
         
@@ -66,10 +71,12 @@ const AddToItineraryModal = ({ isOpen, onClose, locationId, locationName }) => {
         const { error: insertError } = await supabase.from('itinerary_locations').insert({ itinerary_id: itineraryId, location_id: locationId, visit_order: (count || 0) + 1 });
         if (insertError) throw insertError;
         
-        alert(`'${locationName}' foi adicionado ao roteiro!`);
+        // Alterado para toast.success
+        toast.success(`'${locationName}' foi adicionado ao roteiro!`);
         onClose();
     } catch (error) {
-        alert(error.message);
+        // Alterado para toast.error
+        toast.error(error.message);
     }
   };
 

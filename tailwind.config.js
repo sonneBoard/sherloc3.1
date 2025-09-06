@@ -6,11 +6,11 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
+     colors: {
         'sherloc-dark': '#1A1B26',
         'sherloc-dark-2': '#2A2D3A',
-        'sherloc-yellow': '#FFD15B',
-        'sherloc-purple': '#C778DD',
+        'sherloc-yellow': '#C778DD', // <-- MUDAMOS O VALOR DA COR AQUI
+        'sherloc-purple': '#C778DD', // Apenas para referência
         'sherloc-text': '#F0F0F0',
       },
       fontFamily: {

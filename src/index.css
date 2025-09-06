@@ -1,3 +1,57 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.bg-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; /* Ocupa a primeira tela */
+  z-index: 0;
+  background-color: #1A1B26; /* Cor de fundo sherloc-dark */
+  overflow: hidden;
+}
+
+#stars, #stars2, #stars3, #stars4 {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #FFD15B, #C778DD); /* Gradiente com nossas cores */
+  opacity: 0.15;
+  /* O desfoque é a chave do efeito "véu" */
+  filter: blur(80px);
+}
+
+#stars {
+  width: 400px;
+  height: 400px;
+  animation: rotate 20s infinite linear;
+}
+#stars2 {
+  width: 300px;
+  height: 300px;
+  animation: rotate-2 18s infinite linear;
+}
+#stars3 {
+  width: 200px;
+  height: 200px;
+  animation: rotate-3 22s infinite linear;
+}
+#stars4 {
+  width: 100px;
+  height: 100px;
+  animation: rotate-2 25s infinite linear reverse;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg) translate(-200px) rotate(0deg); }
+  to { transform: rotate(360deg) translate(-200px) rotate(-360deg); }
+}
+@keyframes rotate-2 {
+  from { transform: rotate(0deg) translate(-400px) rotate(0deg); }
+  to { transform: rotate(-360deg) translate(-400px) rotate(360deg); }
+}
+@keyframes rotate-3 {
+  from { transform: rotate(0deg) translate(-100px) rotate(0deg); }
+  to { transform: rotate(360deg) translate(-100px) rotate(-360deg); }
+}
