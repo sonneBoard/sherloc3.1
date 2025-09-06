@@ -6,6 +6,8 @@ import FaqAccordion from '../components/FaqAccordion';
 import Footer from '../components/Footer';
 import { useFadeIn } from '../hooks/useFadeIn';
 import DarkVeil from '../components/DarkVeil';
+import StarBorder from '@/components/ui/StarBorder'; // 1. IMPORTAÇÃO DO NOVO BOTÃO
+import BlurText from '@/components/ui/BlurText'; // 1. IMPORTAÇÃO DO NOVO COMPONENTE
 
 
 const AnimatedSection = ({ children, className, id }) => {
@@ -51,28 +53,45 @@ const LandingPage = () => {
               <a href="#tech" className="text-sm font-semibold hover:text-sherloc-purple transition-colors">Tecnologias</a>
               <a href="#faq" className="text-sm font-semibold hover:text-sherloc-purple transition-colors">FAQ</a>
             </nav>
-            <Link to="/login" className="bg-sherloc-dark-2 text-white font-bold py-2 px-5 rounded-lg hover:bg-gray-700 transition-colors">
+           {/* --- BOTÃO "ENTRAR" ESTILIZADO --- */}
+            <Link 
+              to="/login" 
+              className="bg-sherloc-dark-2 text-white font-bold py-2 px-5 rounded-lg hover:bg-gray-700 transition-colors"
+            >
               Entrar
             </Link>
           </div>
         </header>
 
-        {/* Camada do Conteúdo Principal (z-10, na frente do fundo) */}
-        <div className="relative z-10">
-          <h1 className="font-poppins text-5xl md:text-7xl font-bold mb-4">
-            A Sua Próxima Viagem Começa Aqui.
-          </h1>
+        <div className="relative z-10 flex flex-col items-center">
+          {/* 2. TÍTULO ANTIGO SUBSTITUÍDO PELO COMPONENTE ANIMADO */}
+          <BlurText
+            text="A Sua Próxima Viagem Começa Aqui."
+            className="font-poppins text-5xl md:text-7xl font-bold mb-4"
+            animateBy="words"
+            direction="top"
+            delay={100}
+          />
+
           <p className="text-lg text-gray-300 max-w-2xl mb-8">
             O Sherloc é a plataforma definitiva para turistas. Encontre locais, planeje roteiros
             e transforme sua exploração em um jogo.
           </p>
           <div className="flex space-x-4 justify-center">
-            <Link to="/login" className="bg-sherloc-purple text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition-transform hover:scale-105">
+            <Link to="/login">
+            <StarBorder
+              color="#C778DD" // Usando nossa cor roxa
+              speed="5s"
+              thickness={2}
+            >
               Começar Agora
-            </Link>
-          </div>
+            </StarBorder>
+          </Link>
         </div>
-      </section>
+      </div>
+    </section>
+
+
       
       {/* As outras seções (Funcionalidades, FAQ, etc.) continuam abaixo */}
       <AnimatedSection id="features" className="bg-sherloc-dark-2 py-20 px-8">
