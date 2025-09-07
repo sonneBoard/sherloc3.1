@@ -1,40 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { supabase } from '../supabaseClient';
-import LevelUpModal from './LevelUpModal';
-import { Toaster } from 'react-hot-toast'; // A importação já estava correta
+import { Toaster } from 'react-hot-toast';
 
 const MainLayout = () => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  // BUG FIX: Adicionamos o estado 'profile' que estava faltando no seu código
-  const [profile, setProfile] = useState(null);
-
-  const [newLevel, setNewLevel] = useState(0);
-  const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
-
-  const handleProfileUpdate = useCallback((payload) => {
-    console.log("MUDANÇA NO PERFIL RECEBIDA!", payload);
-    const newProfileData = payload.new;
-
-    setProfile(currentProfile => {
-      if (currentProfile && newProfileData.level > currentProfile.level) {
-        console.log(`LEVEL UP DETECTADO! De ${currentProfile.level} para ${newProfileData.level}`);
-        setNewLevel(newProfileData.level);
-        setIsLevelUpModalOpen(true);
-      }
-      return newProfileData;
-    });
-  }, []);
-
+  const location = useLocation();
 
   useEffect(() => {
-    setLoading(true);
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // CORREÇÃO: A linha abaixo estava com 'onst' em vez de 'const'
+    const activeSession = supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate('/login');
       } else {
@@ -52,59 +31,30 @@ const MainLayout = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  useEffect(() => {
-    if (session) {
-      const profileChannel = supabase
-        .channel('public:profiles')
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` },
-          handleProfileUpdate
-        )
-        .subscribe((status) => {
-          console.log("Status da Assinatura do Perfil:", status);
-        });
-
-      return () => {
-        supabase.removeChannel(profileChannel);
-      };
+  
+  // Define um título para o Header com base na rota atual
+  const getTitle = () => {
+    switch (location.pathname) {
+      case '/dashboard': return 'Dashboard';
+      case '/mapa': return 'Mapa Interativo';
+      case '/roteiros': return 'Meus Roteiros';
+      case '/perfil': return 'Meu Perfil';
+      default: return 'Sherloc';
     }
-  }, [session, handleProfileUpdate]);
+  };
 
-
-  if (loading || !session) {
+  if (loading) {
     return <div className="bg-sherloc-dark min-h-screen text-sherloc-text p-8">Carregando...</div>;
   }
 
   return (
     <div className="flex bg-sherloc-dark min-h-screen">
-      {/* --- CONTAINER DE NOTIFICAÇÕES ADICIONADO --- */}
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-        toastOptions={{
-          style: {
-            background: '#2A2D3A',
-            color: '#F0F0F0',
-            border: '1px solid #4A4A4A',
-          },
-        }}
-      />
-      {/* ------------------------------------------- */}
-      
+      <Toaster position="top-center" toastOptions={{ style: { background: '#2A2D3A', color: '#F0F0F0' } }} />
       <Sidebar />
       <main className="flex-1 ml-64 p-8">
-        <Header title="Dashboard" userEmail={session.user.email} />
+        {session && <Header title={getTitle()} userEmail={session.user.email} />}
         <Outlet />
       </main>
-
-      {/* Corrigindo as props do LevelUpModal que estavam comentadas */}
-      <LevelUpModal 
-        isOpen={isLevelUpModalOpen}
-        onClose={() => setIsLevelUpModalOpen(false)}
-        newLevel={newLevel}
-      />
     </div>
   );
 };

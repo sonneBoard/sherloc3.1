@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { LuBook, LuMapPin, LuAward } from "react-icons/lu";
+import { FiBookOpen, FiMapPin, FiAward } from "react-icons/fi";
+import { motion } from 'framer-motion'; // 1. Importamos o motion
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,6 @@ const Dashboard = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Buscas em paralelo
         const [statsPromise, recentItinerariesPromise] = await Promise.all([
           Promise.all([
             supabase.rpc('get_total_itineraries'),
@@ -25,20 +25,15 @@ const Dashboard = () => {
         ]);
 
         const [
-          { data: itinerariesCount, error: itinerariesError },
-          { data: locationsCount, error: locationsError },
-          { data: badgesCount, error: badgesError },
+          { data: itinerariesCount },
+          { data: locationsCount },
+          { data: badgesCount },
         ] = statsPromise;
         
-        const { data: recentData, error: recentError } = recentItinerariesPromise;
+        const { data: recentData } = recentItinerariesPromise;
 
-        if (itinerariesError || locationsError || badgesError || recentError) {
-            console.error(itinerariesError || locationsError || badgesError || recentError);
-            return;
-        }
-
-        setStats({ itineraries: itinerariesCount, locations: locationsCount, badges: badgesCount });
-        setRecentItineraries(recentData);
+        setStats({ itineraries: itinerariesCount || 0, locations: locationsCount || 0, badges: badgesCount || 0 });
+        setRecentItineraries(recentData || []);
 
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error);
@@ -50,44 +45,81 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  // 2. Definimos as variantes para a animação do container e dos itens
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1, // Atraso entre a animação de cada card
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+      },
+    },
+  };
+
   if (loading) {
     return <div className="text-center p-4">Carregando...</div>;
   }
 
   return (
-    <div className="font-lexend">
-      {/* Grid para os cards de estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg flex items-center space-x-4">
-          <div className="bg-blue-500/20 p-3 rounded-lg"><LuBook className="text-blue-400" size={24}/></div>
+    <motion.div 
+      className="font-lexend"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* 3. Aplicamos as animações no container dos cards */}
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants} className="bg-sherloc-dark-2 p-6 rounded-xl shadow-lg flex items-center space-x-4">
+          <div className="bg-blue-500/20 p-3 rounded-lg"><FiBookOpen className="text-blue-400" size={24}/></div>
           <div>
             <p className="text-gray-400 text-sm">Roteiros Criados</p>
             <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.itineraries}</p>
           </div>
-        </div>
-        <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg flex items-center space-x-4">
-          <div className="bg-orange-500/20 p-3 rounded-lg"><LuMapPin className="text-orange-400" size={24}/></div>
+        </motion.div>
+        <motion.div variants={itemVariants} className="bg-sherloc-dark-2 p-6 rounded-xl shadow-lg flex items-center space-x-4">
+          <div className="bg-orange-500/20 p-3 rounded-lg"><FiMapPin className="text-orange-400" size={24}/></div>
           <div>
             <p className="text-gray-400 text-sm">Locais Salvos</p>
             <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.locations}</p>
           </div>
-        </div>
-        <div className="bg-sherloc-dark-2 p-6 rounded-lg shadow-lg flex items-center space-x-4">
-          <div className="bg-green-500/20 p-3 rounded-lg"><LuAward className="text-green-400" size={24}/></div>
+        </motion.div>
+        <motion.div variants={itemVariants} className="bg-sherloc-dark-2 p-6 rounded-xl shadow-lg flex items-center space-x-4">
+          <div className="bg-green-500/20 p-3 rounded-lg"><FiAward className="text-green-400" size={24}/></div>
           <div>
             <p className="text-gray-400 text-sm">Badges Conquistados</p>
             <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.badges}</p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      {/* Módulo de Roteiros Recentes */}
-      <div className="mt-8 bg-sherloc-dark-2 p-6 rounded-lg shadow-lg">
+      <motion.div 
+        className="mt-8 bg-sherloc-dark-2 p-6 rounded-xl shadow-lg"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <h2 className="font-poppins text-xl font-bold mb-4">Roteiros Recentes</h2>
         {recentItineraries.length > 0 ? (
           <ul className="space-y-2">
             {recentItineraries.map(it => (
-              <li key={it.id} className="text-gray-300 hover:text-sherloc-yellow">
+              <li key={it.id} className="text-gray-300 hover:text-sherloc-purple">
                 <Link to={`/roteiro/${it.id}`}>{it.name}</Link>
               </li>
             ))}
@@ -95,8 +127,8 @@ const Dashboard = () => {
         ) : (
           <p className="text-gray-400">Crie seu primeiro roteiro para vê-lo aqui.</p>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
