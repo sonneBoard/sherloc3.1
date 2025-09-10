@@ -1,49 +1,42 @@
+// src/main.jsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 
-// Importação das Páginas e Layouts
-import LandingPage from './pages/LandingPage';
+// Importações
+import App from './App'; // O "porteiro" da rota principal
+import ProtectedRoute from './components/ProtectedRoute'; // O "guarda" das rotas protegidas
 import LoginPage from './pages/LoginPage';
 import MainLayout from './components/MainLayout';
 import Dashboard from './pages/Dashboard';
 import MapPage from './pages/MapPage';
-
-// --- CORREÇÃO AQUI ---
-// Mudamos de volta para os nomes originais dos seus componentes
-import MyItineraries from './pages/MyItineraries'; 
+import MyItineraries from './pages/MyItineraries';
 import Profile from './pages/Profile';
-// import ItineraryDetail from './pages/ItineraryDetail';
-// import LocationDetail from './pages/LocationDetail';
-
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        {/* Rotas Públicas */}
-        <Route path="/" element={<LandingPage />} />
+        {/* Rota 1: O "Porteiro" para a raiz do site */}
+        <Route path="/" element={<App />} />
+        
+        {/* Rota 2: A página de Login (pública) */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Rotas Privadas (dentro do nosso layout principal) */}
-        <Route element={<MainLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/mapa" element={<MapPage />} />
-          
-          {/* --- CORREÇÃO AQUI --- */}
-          {/* Usamos os componentes com os nomes corretos */}
-          <Route path="/roteiros" element={<MyItineraries />} />
-          <Route path="/perfil" element={<Profile />} />
-          
-          {/* Rotas de detalhe que você pode ter */}
-          {/* <Route path="/roteiro/:id" element={<ItineraryDetail />} /> */}
-          {/* <Route path="/local/:id" element={<LocationDetail />} /> */}
+        {/* Rota 3: O "Guarda" para todas as rotas protegidas */}
+        <Route element={<ProtectedRoute />}>
+          {/* Todas as rotas aqui dentro são protegidas. */}
+          {/* Elas compartilham o mesmo layout principal. */}
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/mapa" element={<MapPage />} />
+            <Route path="/roteiros" element={<MyItineraries />} />
+            <Route path="/perfil" element={<Profile />} />
+          </Route>
         </Route>
         
-        {/* Rota de fallback */}
+        {/* Rota de fallback para qualquer caminho não encontrado */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
