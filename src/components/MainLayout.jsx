@@ -4,15 +4,17 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import { supabase } from '../supabaseClient';
 import { Toaster } from 'react-hot-toast';
+import useSidebarStore from '../store/sidebarStore'; // 1. Importamos o store
+import { motion } from 'framer-motion';             // 2. Importamos o motion
 
 const MainLayout = () => {
+  const { isOpen } = useSidebarStore(); // 3. Lemos o estado 'isOpen' da sidebar
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // CORREÇÃO: A linha abaixo estava com 'onst' em vez de 'const'
     const activeSession = supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate('/login');
@@ -23,16 +25,16 @@ const MainLayout = () => {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
       if (!session) {
         navigate('/login');
+      } else {
+        setSession(session);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
   
-  // Define um título para o Header com base na rota atual
   const getTitle = () => {
     switch (location.pathname) {
       case '/dashboard': return 'Dashboard';
@@ -43,18 +45,23 @@ const MainLayout = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !session) {
     return <div className="bg-sherloc-dark min-h-screen text-sherloc-text p-8">Carregando...</div>;
   }
 
   return (
-    <div className="flex bg-sherloc-dark min-h-screen">
+    <div className="bg-sherloc-dark text-sherloc-text min-h-screen">
       <Toaster position="top-center" toastOptions={{ style: { background: '#2A2D3A', color: '#F0F0F0' } }} />
       <Sidebar />
-      <main className="flex-1 ml-64 p-8">
-        {session && <Header title={getTitle()} userEmail={session.user.email} />}
+      {/* 4. A tag <main> agora é uma <motion.main> animada */}
+      <motion.main 
+        className="p-8"
+        animate={{ marginLeft: isOpen ? '16rem' : '5rem' }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+      >
+        <Header title={getTitle()} userEmail={session.user.email} />
         <Outlet />
-      </main>
+      </motion.main>
     </div>
   );
 };

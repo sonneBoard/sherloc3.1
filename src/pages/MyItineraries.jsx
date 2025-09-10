@@ -1,11 +1,18 @@
+// src/pages/MyItineraries.jsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { motion } from 'framer-motion';
+import ItineraryCard from '../components/ItineraryCard';
+import ItineraryDetailModal from '../components/ItineraryDetailModal';
+import EditItineraryModal from '../components/EditItineraryModal'; // 1. Importamos o modal de edição
 
 const MyItineraries = () => {
   const [itineraries, setItineraries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedItineraryId, setSelectedItineraryId] = useState(null);
+  const [editingItineraryId, setEditingItineraryId] = useState(null); // 2. Novo estado para controlar o modal de edição
 
+  // Sua função para buscar os roteiros continua a mesma
   useEffect(() => {
     const fetchItineraries = async () => {
       try {
@@ -13,7 +20,7 @@ const MyItineraries = () => {
         if (user) {
           const { data, error } = await supabase
             .from('itineraries')
-            .select('id, name')
+            .select('id, name, description, image_url')
             .eq('created_by', user.id)
             .order('created_at', { ascending: false });
 
@@ -29,57 +36,66 @@ const MyItineraries = () => {
     fetchItineraries();
   }, []);
 
-  const handleDeleteItinerary = async (itineraryId) => {
-    if (window.confirm("Tem certeza que deseja apagar este roteiro permanentemente? Esta ação não pode ser desfeita.")) {
-      try {
-        const { error } = await supabase
-          .from('itineraries')
-          .delete()
-          .eq('id', itineraryId);
+  // 3. Função para atualizar a lista na tela após uma edição
+  const handleItineraryUpdated = (updatedItinerary) => {
+    setItineraries(prevItineraries => 
+      prevItineraries.map(it => 
+        it.id === updatedItinerary.id ? updatedItinerary : it
+      )
+    );
+  };
 
-        if (error) throw error;
-        setItineraries(itineraries.filter(it => it.id !== itineraryId));
-        alert("Roteiro apagado com sucesso!");
-      } catch (error) {
-        alert("Erro ao apagar o roteiro.");
-        console.error("Erro ao apagar o roteiro:", error);
-      }
-    }
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
 
   if (loading) {
-    return <div className="bg-sherloc-dark min-h-screen text-sherloc-text p-8">Carregando seus roteiros...</div>;
+    return <div>Carregando...</div>; // TODO: Criar Skeleton Loader para os cards aqui
   }
 
   return (
-    // Container principal da página
-    <div className="bg-sherloc-dark min-h-screen text-sherloc-text font-lexend p-8">
-      <div className="max-w-4xl mx-auto">
-        <Link to="/" className="text-sherloc-yellow hover:underline mb-6 inline-block">&larr; Voltar para o Mapa</Link>
-        <h1 className="font-poppins text-4xl font-bold mb-6">Meus Roteiros</h1>
-        
-        {itineraries.length === 0 ? (
-          <p className="bg-sherloc-dark-2 p-4 rounded-lg">Você ainda não criou nenhum roteiro.</p>
-        ) : (
-          // Container da lista
-          <ul className="space-y-4">
-            {itineraries.map(itinerary => (
-              // Card de cada item da lista
-              <li key={itinerary.id} className="bg-sherloc-dark-2 p-4 rounded-lg flex justify-between items-center shadow-lg transition-transform hover:scale-105">
-                <Link to={`/roteiro/${itinerary.id}`} className="font-poppins font-semibold text-lg hover:text-sherloc-yellow">
-                  {itinerary.name}
-                </Link>
-                <button 
-                  onClick={() => handleDeleteItinerary(itinerary.id)} 
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                >
-                  Apagar
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+    <div className="p-8">
+      <h1 className="font-poppins text-4xl font-bold mb-8 text-sherloc-text-bright">Meus Roteiros</h1>
+      
+      {itineraries.length === 0 ? (
+        <p className="glass-card p-6 rounded-lg text-center">Você ainda não criou nenhum roteiro.</p>
+      ) : (
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {itineraries.map(itinerary => (
+            <ItineraryCard 
+              key={itinerary.id} 
+              itinerary={itinerary}
+              onViewMore={setSelectedItineraryId}
+              // 4. O botão 'onEdit' agora define qual roteiro editar, abrindo o modal
+              onEdit={setEditingItineraryId}
+            />
+          ))}
+        </motion.div>
+      )}
+
+      {/* O modal de detalhes continua o mesmo */}
+      {selectedItineraryId && (
+        <ItineraryDetailModal 
+          itineraryId={selectedItineraryId} 
+          onClose={() => setSelectedItineraryId(null)} 
+        />
+      )}
+
+      {/* 5. Renderizamos o novo modal de edição */}
+      {editingItineraryId && (
+        <EditItineraryModal
+          isOpen={!!editingItineraryId}
+          itineraryId={editingItineraryId}
+          onClose={() => setEditingItineraryId(null)}
+          onItineraryUpdated={handleItineraryUpdated}
+        />
+      )}
     </div>
   );
 };

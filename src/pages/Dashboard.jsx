@@ -2,20 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { FiBookOpen, FiMapPin, FiAward } from "react-icons/fi";
-import { motion } from 'framer-motion'; // 1. Importamos o motion
+import { motion } from 'framer-motion';
+import CountUp from 'react-countup';
+
+// --- Componente para o Skeleton Loader (pronto para usar) ---
+const CardSkeleton = () => (
+  <div className="glass-card p-6 rounded-xl flex items-center space-x-4">
+    <div className="bg-gray-700/50 p-3 rounded-lg w-12 h-12 animate-pulse"></div>
+    <div className="w-full">
+      <div className="h-4 bg-gray-700/50 rounded w-3/4 mb-2 animate-pulse"></div>
+      <div className="h-8 bg-gray-700/50 rounded w-1/2 animate-pulse"></div>
+    </div>
+  </div>
+);
+
+// --- Componente para o Contador Animado (pronto para usar) ---
+const AnimatedStat = ({ value }) => (
+  <CountUp
+    end={value}
+    duration={2.5}
+    separator="."
+    className="font-poppins text-2xl font-bold text-sherloc-text-bright"
+  />
+);
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ itineraries: 0, locations: 0, badges: 0 });
   const [recentItineraries, setRecentItineraries] = useState([]);
 
+  // A sua lógica para buscar os dados reais foi mantida
   useEffect(() => {
     const fetchData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const [statsPromise, recentItinerariesPromise] = await Promise.all([
+        // Buscando todos os dados em paralelo para mais performance
+        const [statsResponse, recentItinerariesResponse] = await Promise.all([
           Promise.all([
             supabase.rpc('get_total_itineraries'),
             supabase.rpc('get_total_locations_in_itineraries'),
@@ -28,9 +52,9 @@ const Dashboard = () => {
           { data: itinerariesCount },
           { data: locationsCount },
           { data: badgesCount },
-        ] = statsPromise;
+        ] = statsResponse;
         
-        const { data: recentData } = recentItinerariesPromise;
+        const { data: recentData } = recentItinerariesResponse;
 
         setStats({ itineraries: itinerariesCount || 0, locations: locationsCount || 0, badges: badgesCount || 0 });
         setRecentItineraries(recentData || []);
@@ -38,39 +62,26 @@ const Dashboard = () => {
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error);
       } finally {
-        setLoading(false);
+        // Usamos um pequeno timeout para garantir que a animação seja visível
+        setTimeout(() => setLoading(false), 500);
       }
     };
 
     fetchData();
   }, []);
 
-  // 2. Definimos as variantes para a animação do container e dos itens
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1, // Atraso entre a animação de cada card
-      },
+      transition: { staggerChildren: 0.15 },
     },
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
-    },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
   };
-
-  if (loading) {
-    return <div className="text-center p-4">Carregando...</div>;
-  }
 
   return (
     <motion.div 
@@ -79,47 +90,64 @@ const Dashboard = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* 3. Aplicamos as animações no container dos cards */}
       <motion.div 
         className="grid grid-cols-1 md:grid-cols-3 gap-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants} className="bg-sherloc-dark-2 p-6 rounded-xl shadow-lg flex items-center space-x-4">
-          <div className="bg-blue-500/20 p-3 rounded-lg"><FiBookOpen className="text-blue-400" size={24}/></div>
-          <div>
-            <p className="text-gray-400 text-sm">Roteiros Criados</p>
-            <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.itineraries}</p>
-          </div>
-        </motion.div>
-        <motion.div variants={itemVariants} className="bg-sherloc-dark-2 p-6 rounded-xl shadow-lg flex items-center space-x-4">
-          <div className="bg-orange-500/20 p-3 rounded-lg"><FiMapPin className="text-orange-400" size={24}/></div>
-          <div>
-            <p className="text-gray-400 text-sm">Locais Salvos</p>
-            <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.locations}</p>
-          </div>
-        </motion.div>
-        <motion.div variants={itemVariants} className="bg-sherloc-dark-2 p-6 rounded-xl shadow-lg flex items-center space-x-4">
-          <div className="bg-green-500/20 p-3 rounded-lg"><FiAward className="text-green-400" size={24}/></div>
-          <div>
-            <p className="text-gray-400 text-sm">Badges Conquistados</p>
-            <p className="font-poppins text-2xl font-bold text-sherloc-text">{stats.badges}</p>
-          </div>
-        </motion.div>
+        {/* --- LÓGICA DO SKELETON LOADER APLICADA --- */}
+        {loading ? (
+          <>
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </>
+        ) : (
+          <>
+            {/* --- CARDS COM EFEITO GLASS E NÚMEROS ANIMADOS --- */}
+            <motion.div variants={itemVariants} className="glass-card p-6 rounded-xl flex items-center space-x-4">
+              <div className="bg-blue-500/20 p-3 rounded-lg"><FiBookOpen className="text-blue-400" size={24}/></div>
+              <div>
+                <p className="text-gray-400 text-sm">Roteiros Criados</p>
+                <AnimatedStat value={stats.itineraries} />
+              </div>
+            </motion.div>
+            <motion.div variants={itemVariants} className="glass-card p-6 rounded-xl flex items-center space-x-4">
+              <div className="bg-orange-500/20 p-3 rounded-lg"><FiMapPin className="text-orange-400" size={24}/></div>
+              <div>
+                <p className="text-gray-400 text-sm">Locais Salvos</p>
+                <AnimatedStat value={stats.locations} />
+              </div>
+            </motion.div>
+            <motion.div variants={itemVariants} className="glass-card p-6 rounded-xl flex items-center space-x-4">
+              <div className="bg-green-500/20 p-3 rounded-lg"><FiAward className="text-green-400" size={24}/></div>
+              <div>
+                <p className="text-gray-400 text-sm">Badges Conquistados</p>
+                <AnimatedStat value={stats.badges} />
+              </div>
+            </motion.div>
+          </>
+        )}
       </motion.div>
 
+      {/* --- CARD DE ROTEIROS RECENTES COM EFEITO GLASS --- */}
       <motion.div 
-        className="mt-8 bg-sherloc-dark-2 p-6 rounded-xl shadow-lg"
+        className="mt-8 glass-card p-6 rounded-xl"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <h2 className="font-poppins text-xl font-bold mb-4">Roteiros Recentes</h2>
-        {recentItineraries.length > 0 ? (
+       <h2 className="font-poppins text-xl font-bold mb-4 text-sherloc-text-bright">Roteiros Recentes</h2>
+        {loading ? (
+          <div className="space-y-3">
+            <div className="h-4 bg-gray-700/50 rounded w-3/4 animate-pulse"></div>
+            <div className="h-4 bg-gray-700/50 rounded w-1/2 animate-pulse"></div>
+          </div>
+        ) : recentItineraries.length > 0 ? (
           <ul className="space-y-2">
             {recentItineraries.map(it => (
-              <li key={it.id} className="text-gray-300 hover:text-sherloc-purple">
+              <li key={it.id} className="text-gray-300 hover:text-sherloc-purple transition-colors">
                 <Link to={`/roteiro/${it.id}`}>{it.name}</Link>
               </li>
             ))}

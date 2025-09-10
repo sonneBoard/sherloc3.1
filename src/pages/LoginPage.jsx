@@ -108,6 +108,23 @@ const LoginPage = () => {
     visible: { opacity: 1, height: 'auto', y: 0, transition: { duration: 0.3, ease: "easeIn" } },
   };
 
+  // --- FUNÇÃO PARA LOGIN COM O GOOGLE ---
+  const handleOAuthLogin = async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // Diz ao Supabase para onde redirecionar após o login bem-sucedido
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    if (error) {
+      toast.error(error.error_description || error.message);
+    }
+    setLoading(false);
+  };
+  // ---------------------------------------------
+
   return (
     <div className="min-h-screen w-full lg:grid lg:grid-cols-2 font-lexend bg-sherloc-dark text-sherloc-text">
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-12">
@@ -198,8 +215,11 @@ const LoginPage = () => {
             <div className="flex-grow border-t border-gray-700"></div>
           </div>
           
-          <div>
+           <div>
+             {/* --- CORREÇÃO AQUI --- */}
              <button
+                onClick={handleOAuthLogin} // Adicionamos a chamada da função aqui
+                disabled={loading}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border border-gray-600 px-5 py-3 text-sm font-medium text-sherloc-text hover:bg-sherloc-dark-2 transition-colors"
               >
                 <FcGoogle size={20} />
