@@ -8,11 +8,16 @@ export default {
   theme: {
   	extend: {
   		colors: {
-  			'sherloc-dark': '#1A1B26',
-  			'sherloc-dark-2': '#2A2D3A',
-  			'sherloc-yellow': '#C778DD',
-  			'sherloc-purple': '#C778DD',
-  			'sherloc-text': '#F0F0F0',
+        // --- NOVA PALETA DE CORES ADICIONADA ---
+        'background': '#FFFFFF',
+        'text-primary': '#1F2937',
+        'text-secondary': '#6B7280',
+        'gold': '#FBBF24',
+        'coral': '#EF4444',
+        'border-light': '#E5E7EB',
+        // ------------------------------------
+
+  			// Suas variáveis de cor existentes foram mantidas
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -55,16 +60,17 @@ export default {
   			}
   		},
   		fontFamily: {
-  			poppins: [
-  				'Poppins',
-  				'sans-serif'
-  			],
-  			lexend: [
-  				'Lexend',
-  				'sans-serif'
-  			]
+        // --- NOVAS FONTES ADICIONADAS ---
+        montserrat: ['Montserrat', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
+        roboto: ['Roboto', 'sans-serif'],
+        // -----------------------------
+
+  			// Suas fontes existentes foram mantidas
+  			poppins: ['Poppins', 'sans-serif'],
+  			lexend: ['Lexend', 'sans-serif']
   		},
-  		 // --- ADICIONADO AQUI ---
+      // Suas animações existentes foram mantidas
       animation: {
         'star-movement-bottom': 'star-movement-bottom 6s linear infinite alternate',
         'star-movement-top': 'star-movement-top 6s linear infinite alternate',
@@ -79,8 +85,7 @@ export default {
           '100%': { transform: 'translate(100%, 0%)', opacity: '0' },
         },
       },
-      // --------------------
     },
   },
-  plugins: [require("tailwindcss-animate")], // Garanta que o plugin está aqui
+  plugins: [require("tailwindcss-animate")],
 }

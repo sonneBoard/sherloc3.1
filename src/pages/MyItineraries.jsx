@@ -4,62 +4,69 @@ import { supabase } from '../supabaseClient';
 import { motion } from 'framer-motion';
 import ItineraryCard from '../components/ItineraryCard';
 import ItineraryDetailModal from '../components/ItineraryDetailModal';
-import EditItineraryModal from '../components/EditItineraryModal'; // 1. Importamos o modal de edição
+import EditItineraryModal from '../components/EditItineraryModal';
 
 const MyItineraries = () => {
-  const [itineraries, setItineraries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedItineraryId, setSelectedItineraryId] = useState(null);
-  const [editingItineraryId, setEditingItineraryId] = useState(null); // 2. Novo estado para controlar o modal de edição
+  const [itineraries, setItineraries] = useState([]); //
+  const [loading, setLoading] = useState(true); //
+  const [selectedItineraryId, setSelectedItineraryId] = useState(null); //
+  const [editingItineraryId, setEditingItineraryId] = useState(null); //
 
-  // Sua função para buscar os roteiros continua a mesma
+  // A sua lógica para buscar os roteiros foi mantida
   useEffect(() => {
     const fetchItineraries = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser(); //
         if (user) {
           const { data, error } = await supabase
-            .from('itineraries')
-            .select('id, name, description, image_url')
-            .eq('created_by', user.id)
-            .order('created_at', { ascending: false });
+            .from('itineraries') //
+            .select('id, name, description, image_url') //
+            .eq('created_by', user.id) //
+            .order('created_at', { ascending: false }); //
 
-          if (error) throw error;
-          if (data) setItineraries(data);
+          if (error) throw error; //
+          if (data) setItineraries(data); //
         }
       } catch (error) {
-        console.error("Erro ao buscar roteiros:", error);
+        console.error("Erro ao buscar roteiros:", error); //
       } finally {
-        setLoading(false);
+        setLoading(false); //
       }
     };
     fetchItineraries();
-  }, []);
+  }, []); //
 
-  // 3. Função para atualizar a lista na tela após uma edição
+  // A sua função para atualizar os roteiros na tela foi mantida
   const handleItineraryUpdated = (updatedItinerary) => {
     setItineraries(prevItineraries => 
       prevItineraries.map(it => 
         it.id === updatedItinerary.id ? updatedItinerary : it
       )
     );
-  };
+  }; //
 
+  // As suas variantes de animação foram mantidas
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  };
+  }; //
 
   if (loading) {
-    return <div>Carregando...</div>; // TODO: Criar Skeleton Loader para os cards aqui
+    return <div>Carregando...</div>; // TODO: Criar um Skeleton Loader para os cards aqui
   }
 
   return (
-    <div className="p-8">
-      <h1 className="font-poppins text-4xl font-bold mb-8 text-sherloc-text-bright">Meus Roteiros</h1>
+    // O container principal herda o fundo do MainLayout
+    <div>
+      {/* Título atualizado com a nova cor de texto primária */}
+      <h1 className="font-poppins text-4xl font-bold mb-8 text-text-primary">Meus Roteiros</h1>
       
+      {/* Mensagem de "Estado Vazio" redesenhada para o tema claro */}
       {itineraries.length === 0 ? (
-        <p className="glass-card p-6 rounded-lg text-center">Você ainda não criou nenhum roteiro.</p>
+        <div className="bg-background border border-border-light p-6 rounded-lg text-center">
+            <h3 className="font-poppins font-semibold text-text-primary">Nenhum roteiro por aqui ainda!</h3>
+            <p className="text-text-secondary mt-2 text-sm">Vá para o mapa, descubra novos locais e comece a planejar sua próxima aventura.</p>
+        </div>
       ) : (
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -72,22 +79,20 @@ const MyItineraries = () => {
               key={itinerary.id} 
               itinerary={itinerary}
               onViewMore={setSelectedItineraryId}
-              // 4. O botão 'onEdit' agora define qual roteiro editar, abrindo o modal
               onEdit={setEditingItineraryId}
             />
           ))}
         </motion.div>
       )}
 
-      {/* O modal de detalhes continua o mesmo */}
+      {/* A renderização dos modais foi mantida */}
       {selectedItineraryId && (
         <ItineraryDetailModal 
           itineraryId={selectedItineraryId} 
           onClose={() => setSelectedItineraryId(null)} 
         />
       )}
-
-      {/* 5. Renderizamos o novo modal de edição */}
+      
       {editingItineraryId && (
         <EditItineraryModal
           isOpen={!!editingItineraryId}

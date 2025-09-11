@@ -26,15 +26,15 @@ const MainLayout = () => {
 
   // A verificação de 'loading' e 'session' não é mais necessária aqui.
   return (
-    <div className="bg-sherloc-dark text-sherloc-text min-h-screen">
-      <Toaster position="top-center" toastOptions={{ style: { background: '#2A2D3A', color: '#F0F0F0' } }} />
+    // A única mudança foi remover as cores escuras e deixar que o padrão (branco) seja aplicado
+    <div className="min-h-screen bg-gray-50">
+      <Toaster position="top-center" />
       <Sidebar />
       <motion.main 
         className="p-8"
         animate={{ marginLeft: isOpen ? '16rem' : '5rem' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        {/* O Header foi simplificado para receber apenas o título por enquanto */}
         <Header title={getTitle()} />
         <Outlet />
       </motion.main>

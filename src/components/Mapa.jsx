@@ -5,33 +5,46 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { supabase } from '../supabaseClient';
 
-// ... (O código de configuração dos ícones do Leaflet continua o mesmo)
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+// --- 1. DEFINIÇÃO DOS NOSSOS ÍCONES PERSONALIZADOS (SVG) ---
+const goldPinSvg = `
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#FBBF24"/>
+  </svg>
+`;
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
+const coralPinSvg = `
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#EF4444"/>
+  </svg>
+`;
+
+// --- 2. CRIAÇÃO DOS ÍCONES LEAFLET ---
+const goldIcon = L.divIcon({
+  html: goldPinSvg,
+  className: '', // Remove a classe padrão para não ter fundo branco
+  iconSize: [32, 32],
+  iconAnchor: [16, 32], // A ponta do pino
+  popupAnchor: [0, -32] // Onde o popup deve aparecer em relação ao ícone
 });
-// --------------------------------------------------------------------
+
+const coralIcon = L.divIcon({
+  html: coralPinSvg,
+  className: '',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+});
 
 
-// --- 1. O componente agora aceita a propriedade 'onAddRequest' ---
 const Mapa = ({ onAddRequest }) => {
   const mapRef = useRef(null);
   const [locations, setLocations] = useState([]);
 
-  // O seu useEffect para buscar os locais continua exatamente o mesmo
+  // Seus useEffects para buscar locais e iniciar o mapa continuam os mesmos
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const { data, error } = await supabase
-           .from('locations')
-          .select('*');
-        
+        const { data, error } = await supabase.from('locations').select('*');
         if (error) throw error;
         if (data) setLocations(data);
       } catch (error) {
@@ -41,22 +54,16 @@ const Mapa = ({ onAddRequest }) => {
     fetchLocations();
   }, []);
 
-  // O seu useEffect para inicializar o mapa continua exatamente o mesmo
   useEffect(() => {
     if (!mapRef.current) {
       const position = [-20.7205, -47.8885]; 
       const map = L.map('map').setView(position, 15);
       mapRef.current = map;
-
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
-
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 10);
+      setTimeout(() => map.invalidateSize(), 10);
     }
-    
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
@@ -65,13 +72,15 @@ const Mapa = ({ onAddRequest }) => {
     };
   }, []);
 
-  // --- 2. O useEffect dos marcadores foi atualizado ---
+  // --- 3. EFEITO ATUALIZADO PARA ADICIONAR MARCADORES PERSONALIZADOS ---
   useEffect(() => {
     if (mapRef.current && locations.length > 0) {
       locations.forEach(location => {
-        const marker = L.marker([location.latitude, location.longitude]).addTo(mapRef.current);
+        // Usamos o nosso ícone dourado personalizado como padrão
+        const marker = L.marker([location.latitude, location.longitude], { 
+          icon: goldIcon 
+        }).addTo(mapRef.current);
         
-        // Removemos o 'onclick' do botão, pois ele será adicionado dinamicamente
         const popupContent = `
           <div style="font-family: 'Lexend', sans-serif;">
             <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 16px; margin-bottom: 5px;">${location.name}</h3>
@@ -84,13 +93,18 @@ const Mapa = ({ onAddRequest }) => {
         
         marker.bindPopup(popupContent);
 
-        // --- 3. A "PONTE" entre Leaflet e React ---
-        // Quando um pop-up é aberto...
+        // Adicionamos os eventos de HOVER
+        marker.on('mouseover', function (e) {
+          this.setIcon(coralIcon); // Muda para o ícone coral
+        });
+        marker.on('mouseout', function (e) {
+          this.setIcon(goldIcon); // Volta para o ícone dourado
+        });
+
+        // A "ponte" entre Leaflet e React continua a mesma
         marker.on('popupopen', (e) => {
-          // ...encontramos o botão dentro dele...
           const btn = e.popup.getElement().querySelector('.add-to-itinerary-btn');
           if (btn) {
-            // ...e adicionamos um evento de clique que chama a função do React!
             btn.onclick = () => {
               onAddRequest(location);
             };
@@ -98,12 +112,30 @@ const Mapa = ({ onAddRequest }) => {
         });
       });
     }
-  }, [locations, onAddRequest]); // Adicionamos onAddRequest às dependências
+  }, [locations, onAddRequest]);
 
-  // O seu JSX continua o mesmo
+  // Seu JSX com o hack de estilo para o botão do popup
   return (
     <>
-      <style>{`...`}</style>
+      <style>
+        {`
+          .add-to-itinerary-btn {
+            background-color: #FBBF24; /* Dourado */
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Lexend', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+          }
+          .add-to-itinerary-btn:hover {
+            background-color: #EF4444; /* Coral */
+          }
+        `}
+      </style>
       <div id="map" style={{ height: '100%', width: '100%' }}></div>
     </>
   );
