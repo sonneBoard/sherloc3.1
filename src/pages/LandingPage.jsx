@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiMapPin, FiBookOpen, FiAward, FiSearch, FiEdit, FiNavigation } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+// --- CORREÇÃO AQUI: Adicionamos o FiChevronDown à lista ---
+import { FiMapPin, FiBookOpen, FiAward, FiMessageSquare, FiChevronDown } from 'react-icons/fi'; 
 import Footer from '../components/Footer';
 
-// A animação DarkVeil é perfeita para este tema
+
 const DarkVeilAnimation = () => (
   <div className="bg-animation">
     <div id="stars"></div>
@@ -14,13 +15,88 @@ const DarkVeilAnimation = () => (
   </div>
 );
 
-const LandingPage = () => {
+const testimonials = [
+  { quote: "O Sherloc transformou a maneira como eu viajo. Planejar roteiros se tornou a parte mais divertida da viagem!", name: "Ana Clara", role: "Viajante Frequente" },
+  { quote: "Finalmente uma ferramenta que entende o que um explorador precisa. O mapa interativo e as conquistas são geniais.", name: "Bruno G.", role: "Aventureiro" },
+  { quote: "Usei para planejar uma viagem em família e foi um sucesso. Ter todos os locais organizados num só lugar não tem preço.", name: "Sofia M.", role: "Planejadora de Viagens" }
+];
+
+
+const featureHighlights = [
+  {
+    title: "Explore um Mundo de Possibilidades",
+    description: "Navegue em um mapa interativo repleto de pontos de interesse, desde marcos históricos a restaurantes badalados. A descoberta da sua próxima aventura está na ponta dos seus dedos.",
+    image: "https://images.unsplash.com/photo-1521295121783-8a321d551ad2?q=80&w=2070&auto=format&fit=crop"
+  },
+  {
+    title: "Crie Roteiros com a Sua Assinatura",
+    description: "Arraste e solte locais, adicione notas pessoais, defina datas e organize o itinerário perfeito. O Sherloc oferece as ferramentas para que cada viagem seja unicamente sua.",
+    image: "https://images.unsplash.com/photo-1542037104-924827d40573?q=80&w=2070&auto=format&fit=crop"
+  },
+  {
+    title: "Compartilhe e Conquiste",
+    description: "Torne seus roteiros públicos para inspirar outros viajantes, ou clone as melhores aventuras da comunidade para a sua própria coleção. Ganhe badges e suba de nível a cada nova descoberta.",
+    image: "https://images.unsplash.com/photo-1500835556837-99ac94a94552?q=80&w=1974&auto=format&fit=crop"
+  }
+];
+
+
+// --- DADOS E COMPONENTES DO FAQ QUE ESTAVAM EM FALTA ---
+const faqData = [
+  { question: "O Sherloc é gratuito?", answer: "Sim! As funcionalidades principais do Sherloc, como a criação de roteiros e a descoberta de locais, são totalmente gratuitas. Planeamos introduzir funcionalidades 'Pro' opcionais no futuro." },
+  { question: "Os meus roteiros são privados?", answer: "Por padrão, todos os roteiros que você cria são privados. Você tem a opção de torná-los públicos para que outros membros da comunidade possam se inspirar na sua viagem." },
+  { question: "Posso usar o Sherloc em qualquer cidade?", answer: "Sim! Embora a nossa base de dados inicial esteja focada em algumas cidades, você pode adicionar qualquer local do mundo aos seus roteiros usando o nosso mapa interativo." }
+];
+
+const AccordionItem = ({ question, answer }) => {
+  const [isOpen, setIsOpen] = useState(false);
   return (
+    <div className="border-b border-white/10">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex justify-between items-center text-left py-4"
+      >
+        <span className="font-semibold text-text-primary">{question}</span>
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
+          <FiChevronDown />
+        </motion.div>
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <p className="pb-4 text-text-secondary text-sm">{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+// ---------------------------------------------------
+const LandingPage = () => {
+  // 1. Estado para guardar o índice do testemunho ativo
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // 2. Temporizador para mudar o testemunho a cada 5 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Avança para o próximo índice, voltando a 0 no final
+      setActiveIndex((current) => (current + 1) % testimonials.length);
+    }, 5000); // Muda a cada 5 segundos
+    
+    // Limpa o temporizador quando o componente é desmontado para evitar erros
+    return () => clearInterval(interval);
+  }, []);
+
+ return (
     <div className="bg-primary text-text-primary font-inter">
-      {/* --- Seção Hero com o Tema Cinematográfico --- */}
+      {/* --- Seção Hero --- */}
       <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
         <DarkVeilAnimation />
-        {/* Adicionamos um gradiente escuro na parte de baixo para uma transição mais suave */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-primary to-transparent z-10"></div>
         
         <motion.div
@@ -46,6 +122,7 @@ const LandingPage = () => {
           </Link>
         </motion.div>
       </section>
+
 
       {/* --- Seção de Funcionalidades com Efeito Glass --- */}
       <section id="features" className="py-20 px-8">
@@ -90,8 +167,85 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-      
-       {/* --- ADICIONAMOS O RODAPÉ NO FINAL DA PÁGINA --- */}
+
+        {/* --- SEÇÃO DE TESTEMUNHOS ATUALIZADA COM CARROSSEL --- */}
+      <section id="testimonials" className="py-20 px-8">
+        <div className="max-w-3xl mx-auto text-center relative h-48 flex items-center">
+          <FiMessageSquare size={80} className="text-accent-gold/10 absolute top-0 left-1/2 -translate-x-1/2" />
+          
+          {/* 3. AnimatePresence para animar a entrada e saída */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeIndex} // A chave única garante que o Framer Motion detete a mudança
+              className="w-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+            >
+              <p className="font-poppins text-2xl md:text-3xl leading-relaxed text-text-primary mb-6">
+                "{testimonials[activeIndex].quote}"
+              </p>
+              <div>
+                <p className="font-semibold text-accent-glow">{testimonials[activeIndex].name}</p>
+                <p className="text-sm text-text-secondary">{testimonials[activeIndex].role}</p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </section>
+
+       {/* --- NOVA SEÇÃO DE TEXTO E IMAGEM ANIMADA --- */}
+      <section id="scrolly-features" className="py-24 px-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          
+          {/* Coluna da Esquerda: Textos que rolam */}
+          <div className="lg:py-16">
+            <h2 className="font-poppins text-4xl font-bold text-text-primary mb-12">
+              Tudo o que Você Precisa para Viajar
+            </h2>
+            <div className="space-y-24">
+              {featureHighlights.map((feature, index) => (
+                <motion.div 
+                  key={index}
+                  className="flex flex-col gap-4"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: false, amount: 0.8 }} // Anima quando 80% do elemento está visível
+                  transition={{ duration: 0.6 }}
+                >
+                  <h3 className="font-poppins text-2xl font-bold text-accent-gold">{feature.title}</h3>
+                  <p className="text-text-secondary">{feature.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Coluna da Direita: Imagem "Fixa" */}
+          <div className="h-[600px] sticky top-24">
+            {/* Usamos o index do primeiro item visível para a imagem, mas pode ser melhorado */}
+            <img 
+              src={featureHighlights[0].image} 
+              alt="Visualização do Sherloc" 
+              className="w-full h-full object-cover rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      </section>
+
+ {/* --- Seção de FAQ --- */}
+      <section id="faq" className="py-20 px-8">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="font-poppins text-4xl font-bold text-text-primary text-center mb-12">Perguntas Frequentes</h2>
+          <div className="glass-card p-6 rounded-2xl">
+            {/* Agora esta linha funciona, pois 'faqData' e 'AccordionItem' foram definidos */}
+            {faqData.map((faq, index) => (
+              <AccordionItem key={index} question={faq.question} answer={faq.answer} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );
