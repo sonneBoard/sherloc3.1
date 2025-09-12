@@ -98,16 +98,16 @@
   }
   
   /* Passo 2: Atualizamos o body para usar a nova fonte padrão */
-  body {
-    @apply bg-background text-foreground font-roboto;
+   body {
+    @apply bg-primary text-text-primary font-inter;
   }
 }
 
 /* A sua classe .glass-card também foi mantida */
 .glass-card {
-  background: rgba(42, 45, 58, 0.6);
+  background: rgba(26, 27, 38, 0.6); /* Usa a cor 'secondary' com 60% de opacidade */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(204, 164, 59, 0.15); /* Borda sutil com o tom do dourado */
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }

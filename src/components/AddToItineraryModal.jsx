@@ -47,6 +47,32 @@ const AddToItineraryModal = ({ location, onClose, onNewItinerary }) => {
       } else {
         // Se não houver erro, mostramos a mensagem de sucesso
         toast.success(`'${location.name}' adicionado ao roteiro!`);
+
+// --- CORREÇÃO E NOVA LÓGICA ---
+      const { count, error: countError } = await supabase
+        .from('itinerary_locations')
+        .select('*', { count: 'exact', head: true })
+        .eq('itinerary_id', itineraryId);
+      
+      if (countError) throw countError;
+
+      if (count === 5) {
+        // Buscamos o usuário AQUI, dentro da função
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return; // Garante que temos um usuário antes de prosseguir
+
+        const { error: badgeError } = await supabase
+          .from('user_badges')
+          .insert([{ user_id: user.id, badge_id: 2 }]); // ID 2 = Explorador Curioso
+        
+        if (badgeError && badgeError.code !== '23505') { throw badgeError; }
+
+        if (!badgeError) {
+          toast.success('✨ Conquista Desbloqueada: Explorador Curioso!', { icon: '🧭', duration: 4000 });
+        }
+      }
+      // -----------------------------
+
         onClose();
       }
 

@@ -4,14 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiType, FiFileText, FiImage, FiCalendar, FiGlobe } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 
-// Reutilizamos o componente InputField (pode ser movido para um ficheiro próprio no futuro)
+// InputField atualizado para o tema cinematográfico
 const InputField = ({ icon, label, isTextArea = false, ...props }) => (
   <div>
     <label className="text-sm font-semibold mb-2 flex items-center gap-2 text-text-secondary">{icon}{label}</label>
     {isTextArea ? (
-      <textarea {...props} rows="3" className="w-full bg-gray-50 p-3 rounded-lg border border-border-light focus:outline-none focus:ring-2 focus:ring-gold transition-all" />
+      <textarea {...props} rows="3" className="w-full bg-secondary p-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-accent-gold transition-all text-text-primary" />
     ) : (
-      <input {...props} className="w-full bg-gray-50 p-3 rounded-lg border border-border-light focus:outline-none focus:ring-2 focus:ring-gold transition-all" />
+      <input {...props} className="w-full bg-secondary p-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-accent-gold transition-all text-text-primary" />
     )}
   </div>
 );
@@ -58,6 +58,16 @@ const EditItineraryModal = ({ itineraryId, isOpen, onClose, onItineraryUpdated }
       const { data, error } = await supabase.from('itineraries').update(updateData).eq('id', id).select().single();
       if (error) throw error;
       toast.success("Roteiro atualizado com sucesso!");
+
+      // --- NOVA LÓGICA: Badge "Fotógrafo" (ID 4) ---
+      if (itinerary.image_url && itinerary.image_url.trim() !== '') {
+        const { error: badgeError } = await supabase.from('user_badges').insert([{ user_id: user.id, badge_id: 4 }]);
+        if (!badgeError) {
+          toast.success('✨ Conquista Desbloqueada: Fotógrafo!', { icon: '📸' });
+        }
+      }
+      // ------------------------------------
+
       onItineraryUpdated(data);
       onClose();
     } catch (error) {
@@ -76,13 +86,13 @@ const EditItineraryModal = ({ itineraryId, isOpen, onClose, onItineraryUpdated }
           onClick={onClose}
         >
           <motion.div
-            className="bg-background w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-xl overflow-hidden flex flex-col"
+            className="glass-card w-full max-w-2xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col"
             initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 flex items-center justify-between border-b border-border-light">
+            <div className="p-6 flex items-center justify-between border-b border-white/10">
               <h2 className="font-poppins text-2xl font-bold text-text-primary">Editar Roteiro</h2>
-              <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 transition-colors">
+              <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10 transition-colors">
                 <FiX size={24} />
               </button>
             </div>
@@ -98,9 +108,9 @@ const EditItineraryModal = ({ itineraryId, isOpen, onClose, onItineraryUpdated }
                   <InputField icon={<FiCalendar/>} label="Data de Início" name="start_date" value={itinerary?.start_date || ''} onChange={handleChange} type="date" />
                   <InputField icon={<FiCalendar/>} label="Data de Fim" name="end_date" value={itinerary?.end_date || ''} onChange={handleChange} type="date" />
                 </div>
-                <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-border-light">
+                <div className="flex items-center justify-between bg-secondary/50 p-4 rounded-lg border border-white/10">
                   <div className="flex items-center gap-3">
-                    <FiGlobe className="text-gold" />
+                    <FiGlobe className="text-accent-gold" />
                     <div>
                       <label htmlFor="is_public" className="font-semibold text-text-primary">Roteiro Público</label>
                       <p className="text-xs text-text-secondary">Outros usuários poderão ver este roteiro.</p>
@@ -109,7 +119,7 @@ const EditItineraryModal = ({ itineraryId, isOpen, onClose, onItineraryUpdated }
                   <input type="checkbox" id="is_public" name="is_public" checked={itinerary?.is_public || false} onChange={handleChange} />
                 </div>
                 <div className="pt-4 flex justify-end">
-                  <button type="submit" disabled={isSaving} className="bg-gold text-white font-inter font-bold py-3 px-6 rounded-lg hover:bg-coral transition-colors disabled:opacity-50">
+                  <button type="submit" disabled={isSaving} className="bg-accent-gold text-primary font-inter font-bold py-3 px-6 rounded-lg hover:brightness-110 transition-colors disabled:opacity-50">
                     {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                   </button>
                 </div>

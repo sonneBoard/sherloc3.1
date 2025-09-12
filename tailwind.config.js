@@ -7,14 +7,14 @@ export default {
   ],
   theme: {
   	extend: {
-  		colors: {
-        // --- NOVA PALETA DE CORES ADICIONADA ---
-        'background': '#FFFFFF',
-        'text-primary': '#1F2937',
-        'text-secondary': '#6B7280',
-        'gold': '#FBBF24',
-        'coral': '#EF4444',
-        'border-light': '#E5E7EB',
+  			colors: {
+        // --- NOVA PALETA "CINEMATOGRÁFICA" ---
+        'primary': '#0D0D12',      // Preto elegante para o fundo
+        'secondary': '#1A1B26',   // Cinza-chumbo para cards e superfícies
+        'accent-gold': '#CCA43B', // Dourado de destaque
+        'accent-glow': '#F0E6D2', // Dourado claro para brilhos
+        'text-primary': '#E0E0E0',   // Branco suave para texto principal
+        'text-secondary': '#8A8A8A',// Cinza médio para texto de apoio
         // ------------------------------------
 
   			// Suas variáveis de cor existentes foram mantidas
@@ -60,21 +60,18 @@ export default {
   			}
   		},
   		fontFamily: {
-        // --- NOVAS FONTES ADICIONADAS ---
+        // As fontes que definimos anteriormente são perfeitas para este estilo
         montserrat: ['Montserrat', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
         inter: ['Inter', 'sans-serif'],
         roboto: ['Roboto', 'sans-serif'],
-        // -----------------------------
-
-  			// Suas fontes existentes foram mantidas
-  			poppins: ['Poppins', 'sans-serif'],
-  			lexend: ['Lexend', 'sans-serif']
   		},
       // Suas animações existentes foram mantidas
       animation: {
         'star-movement-bottom': 'star-movement-bottom 6s linear infinite alternate',
         'star-movement-top': 'star-movement-top 6s linear infinite alternate',
       },
+	  
       keyframes: {
         'star-movement-bottom': {
           '0%': { transform: 'translate(0%, 0%)', opacity: '1' },

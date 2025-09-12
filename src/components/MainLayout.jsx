@@ -1,10 +1,9 @@
-// src/components/MainLayout.jsx
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { Toaster } from 'react-hot-toast';
-import useSidebarStore from '../store/sidebarStore';
+import useSidebarStore from '../store/appStore';
 import { motion } from 'framer-motion';
 
 const MainLayout = () => {
@@ -24,18 +23,24 @@ const MainLayout = () => {
     }
   };
 
-  // A verificação de 'loading' e 'session' não é mais necessária aqui.
   return (
-    // A única mudança foi remover as cores escuras e deixar que o padrão (branco) seja aplicado
-    <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-center" />
+    // Aplicamos o novo fundo 'bg-primary' e o texto padrão 'text-text-primary'
+    <div className="min-h-screen bg-primary text-text-primary">
+      {/* O Toaster agora usará o nosso estilo .glass-card para as notificações */}
+      <Toaster position="top-center" toastOptions={{
+        className: 'glass-card',
+        style: {
+          background: 'rgba(26, 27, 38, 0.7)', // Cor secondary com opacidade
+          color: '#E0E0E0', // Cor text-primary
+        },
+      }}/>
       <Sidebar />
       <motion.main 
         className="p-8"
         animate={{ marginLeft: isOpen ? '16rem' : '5rem' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        <Header title={getTitle()} />
+        <Header title={getTitle()} /> {/* O Header será redesenhado a seguir */}
         <Outlet />
       </motion.main>
     </div>

@@ -5,13 +5,13 @@ import { FiBookOpen, FiMapPin, FiAward } from "react-icons/fi";
 import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
 
-// --- Skeleton Loader atualizado para o tema claro ---
+// --- Skeleton Loader atualizado para o tema cinematográfico ---
 const CardSkeleton = () => (
-  <div className="bg-background p-6 rounded-2xl shadow-md flex items-center space-x-4">
-    <div className="bg-gray-200 p-3 rounded-lg w-12 h-12 animate-pulse"></div>
+  <div className="glass-card p-6 rounded-2xl flex items-center space-x-4">
+    <div className="bg-secondary/50 p-3 rounded-lg w-12 h-12 animate-pulse"></div>
     <div className="w-full">
-      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
-      <div className="h-8 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+      <div className="h-4 bg-secondary/50 rounded w-3/4 mb-2 animate-pulse"></div>
+      <div className="h-8 bg-secondary/50 rounded w-1/2 animate-pulse"></div>
     </div>
   </div>
 );
@@ -22,7 +22,7 @@ const AnimatedStat = ({ value }) => (
     end={value}
     duration={2.5}
     separator="."
-    className="font-poppins text-3xl font-bold text-gold"
+    className="font-poppins text-3xl font-bold text-accent-glow"
   />
 );
 
@@ -61,11 +61,17 @@ const Dashboard = () => {
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error);
       } finally {
-        // Usamos um pequeno timeout para garantir que a animação seja visível
-        setTimeout(() => setLoading(false), 500);
+        setLoading(false);
       }
     };
-    fetchData();
+
+    // Usando um timeout para garantir que vejamos a animação do skeleton
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 1500);
+
+    return () => clearTimeout(timer);
+    
   }, []);
 
   // Suas variantes de animação foram mantidas
@@ -84,18 +90,17 @@ const Dashboard = () => {
 
   return (
     <motion.div 
-      className="font-roboto" // Fonte padrão alterada
+      className="font-roboto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        className="grid grid-cols-1 md:grid-cols-3 gap-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Lógica de carregamento aprimorada para mostrar os Skeletons */}
         {loading ? (
           <>
             <CardSkeleton />
@@ -104,23 +109,23 @@ const Dashboard = () => {
           </>
         ) : (
           <>
-            {/* --- Cards de Estatística com o Novo Estilo --- */}
-            <motion.div variants={itemVariants} className="bg-background p-6 rounded-2xl shadow-lg flex items-center space-x-4">
-              <div className="bg-gold/10 p-3 rounded-lg"><FiBookOpen className="text-gold" size={24}/></div>
+            {/* --- Cards de Estatística com o Novo Estilo Glass --- */}
+            <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl flex items-center space-x-4">
+              <div className="bg-accent-gold/10 p-3 rounded-lg"><FiBookOpen className="text-accent-gold" size={24}/></div>
               <div>
                 <p className="text-text-secondary text-sm font-semibold">Roteiros Criados</p>
                 <AnimatedStat value={stats.itineraries} />
               </div>
             </motion.div>
-            <motion.div variants={itemVariants} className="bg-background p-6 rounded-2xl shadow-lg flex items-center space-x-4">
-              <div className="bg-coral/10 p-3 rounded-lg"><FiMapPin className="text-coral" size={24}/></div>
+            <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl flex items-center space-x-4">
+               <div className="bg-accent-gold/10 p-3 rounded-lg"><FiMapPin className="text-accent-gold" size={24}/></div>
               <div>
                 <p className="text-text-secondary text-sm font-semibold">Locais Salvos</p>
                 <AnimatedStat value={stats.locations} />
               </div>
             </motion.div>
-            <motion.div variants={itemVariants} className="bg-background p-6 rounded-2xl shadow-lg flex items-center space-x-4">
-              <div className="bg-emerald-500/10 p-3 rounded-lg"><FiAward className="text-emerald-500" size={24}/></div>
+            <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl flex items-center space-x-4">
+               <div className="bg-accent-gold/10 p-3 rounded-lg"><FiAward className="text-accent-gold" size={24}/></div>
               <div>
                 <p className="text-text-secondary text-sm font-semibold">Badges Conquistados</p>
                 <AnimatedStat value={stats.badges} />
@@ -130,9 +135,9 @@ const Dashboard = () => {
         )}
       </motion.div>
 
-      {/* --- Card de Roteiros Recentes com o Novo Estilo --- */}
+      {/* --- Card de Roteiros Recentes com o Novo Estilo Glass --- */}
       <motion.div 
-        className="mt-8 bg-background p-6 rounded-2xl shadow-lg"
+        className="mt-8 glass-card p-6 rounded-2xl"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
@@ -140,14 +145,14 @@ const Dashboard = () => {
         <h2 className="font-poppins text-xl font-bold mb-4 text-text-primary">Roteiros Recentes</h2>
         {loading ? (
           <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+            <div className="h-4 bg-secondary/50 rounded w-3/4 animate-pulse"></div>
+            <div className="h-4 bg-secondary/50 rounded w-1/2 animate-pulse"></div>
           </div>
         ) : recentItineraries.length > 0 ? (
           <ul className="space-y-3">
             {recentItineraries.map(it => (
               <li key={it.id}>
-                <Link to={`/roteiro/${it.id}`} className="font-semibold text-text-secondary hover:text-gold transition-colors">{it.name}</Link>
+                <Link to={`/roteiro/${it.id}`} className="font-semibold text-text-secondary hover:text-accent-gold transition-colors">{it.name}</Link>
               </li>
             ))}
           </ul>

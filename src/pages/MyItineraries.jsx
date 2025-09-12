@@ -1,73 +1,71 @@
 // src/pages/MyItineraries.jsx
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+import useAppStore from '../store/appStore';
 import { motion } from 'framer-motion';
 import ItineraryCard from '../components/ItineraryCard';
 import ItineraryDetailModal from '../components/ItineraryDetailModal';
 import EditItineraryModal from '../components/EditItineraryModal';
+import { toast } from 'react-hot-toast';
+import { supabase } from '../supabaseClient';
+import ItineraryCardSkeleton from '../components/ItineraryCardSkeleton'; // Importamos o Skeleton
 
 const MyItineraries = () => {
-  const [itineraries, setItineraries] = useState([]); //
-  const [loading, setLoading] = useState(true); //
   const [selectedItineraryId, setSelectedItineraryId] = useState(null); //
   const [editingItineraryId, setEditingItineraryId] = useState(null); //
 
-  // A sua lógica para buscar os roteiros foi mantida
-  useEffect(() => {
-    const fetchItineraries = async () => {
+  const {
+    itineraries,
+    isLoadingItineraries,
+    fetchItineraries,
+    updateItinerary,
+    removeItinerary
+  } = useAppStore(); //
+
+  useEffect(() => { fetchItineraries(); }, [fetchItineraries]); //
+
+  const handleItineraryUpdated = (updatedItinerary) => { updateItinerary(updatedItinerary); }; //
+  
+  const handleDeleteItinerary = async (itineraryId) => {
+    if (window.confirm("Tem certeza que deseja apagar este roteiro? Esta ação não pode ser desfeita.")) { //
       try {
-        const { data: { user } } = await supabase.auth.getUser(); //
-        if (user) {
-          const { data, error } = await supabase
-            .from('itineraries') //
-            .select('id, name, description, image_url') //
-            .eq('created_by', user.id) //
-            .order('created_at', { ascending: false }); //
-
-          if (error) throw error; //
-          if (data) setItineraries(data); //
-        }
+        const { error } = await supabase.from('itineraries').delete().eq('id', itineraryId); //
+        if (error) throw error; //
+        
+        removeItinerary(itineraryId); //
+        toast.success("Roteiro apagado com sucesso!"); //
+        
       } catch (error) {
-        console.error("Erro ao buscar roteiros:", error); //
-      } finally {
-        setLoading(false); //
+        toast.error("Erro ao apagar o roteiro."); //
+        console.error("Erro ao apagar roteiro:", error); //
       }
-    };
-    fetchItineraries();
-  }, []); //
+    }
+  };
 
-  // A sua função para atualizar os roteiros na tela foi mantida
-  const handleItineraryUpdated = (updatedItinerary) => {
-    setItineraries(prevItineraries => 
-      prevItineraries.map(it => 
-        it.id === updatedItinerary.id ? updatedItinerary : it
-      )
-    );
-  }; //
-
-  // As suas variantes de animação foram mantidas
+  // As variantes de animação foram movidas para dentro do return para simplificar
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  }; //
-
-  if (loading) {
-    return <div>Carregando...</div>; // TODO: Criar um Skeleton Loader para os cards aqui
-  }
+  };
 
   return (
-    // O container principal herda o fundo do MainLayout
     <div>
-      {/* Título atualizado com a nova cor de texto primária */}
       <h1 className="font-poppins text-4xl font-bold mb-8 text-text-primary">Meus Roteiros</h1>
       
-      {/* Mensagem de "Estado Vazio" redesenhada para o tema claro */}
-      {itineraries.length === 0 ? (
-        <div className="bg-background border border-border-light p-6 rounded-lg text-center">
+      {/* --- LÓGICA DE CARREGAMENTO ATUALIZADA --- */}
+      {isLoadingItineraries ? (
+        // Mostra a grelha de Skeletons durante o carregamento
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Cria um array de 6 posições para renderizar 6 skeletons */}
+          {[...Array(6)].map((_, i) => <ItineraryCardSkeleton key={i} />)}
+        </div>
+      ) : itineraries.length === 0 ? (
+        // Mensagem de estado vazio
+        <div className="glass-card p-6 rounded-lg text-center">
             <h3 className="font-poppins font-semibold text-text-primary">Nenhum roteiro por aqui ainda!</h3>
-            <p className="text-text-secondary mt-2 text-sm">Vá para o mapa, descubra novos locais e comece a planejar sua próxima aventura.</p>
+            <p className="text-text-secondary mt-2 text-sm">Vá para o mapa e comece a planejar.</p>
         </div>
       ) : (
+        // Mostra os cards reais quando o carregamento termina
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={containerVariants}
@@ -89,7 +87,11 @@ const MyItineraries = () => {
       {selectedItineraryId && (
         <ItineraryDetailModal 
           itineraryId={selectedItineraryId} 
-          onClose={() => setSelectedItineraryId(null)} 
+          onClose={() => setSelectedItineraryId(null)}
+          onDelete={() => {
+            handleDeleteItinerary(selectedItineraryId);
+            setSelectedItineraryId(null);
+          }}
         />
       )}
       

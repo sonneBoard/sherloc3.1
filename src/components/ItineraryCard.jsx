@@ -10,7 +10,7 @@ const ItineraryCard = ({ itinerary, onViewMore, onEdit }) => {
   return (
     <motion.div
       variants={cardVariants}
-      className="bg-background rounded-2xl overflow-hidden shadow-lg border border-border-light flex flex-col h-full hover:shadow-xl transition-shadow duration-300"
+      className="glass-card rounded-2xl overflow-hidden flex flex-col h-full hover:border-white/20 transition-colors duration-300"
     >
       <img 
         src={itinerary.image_url || 'https://images.unsplash.com/photo-1528543606781-2f6e6857f318'} 
@@ -20,16 +20,16 @@ const ItineraryCard = ({ itinerary, onViewMore, onEdit }) => {
       <div className="p-6 flex flex-col flex-grow">
         <h3 className="font-poppins text-xl font-bold text-text-primary mb-2">{itinerary.name}</h3>
         <p className="text-text-secondary text-sm mb-4 flex-grow">{itinerary.description || 'Uma aventura inesquecível espera por você.'}</p>
-        <div className="flex items-center gap-4 mt-auto pt-4 border-t border-border-light">
+        <div className="flex items-center gap-4 mt-auto pt-4 border-t border-white/10">
           <button 
             onClick={() => onViewMore(itinerary.id)}
-            className="flex-1 bg-gold text-white font-inter font-semibold text-sm py-2 px-4 rounded-lg hover:bg-coral transition-colors"
+            className="flex-1 bg-accent-gold text-primary font-inter font-semibold text-sm py-2 px-4 rounded-lg hover:brightness-110 transition-colors"
           >
             Ver Mais
           </button>
           <button 
             onClick={() => onEdit(itinerary.id)}
-            className="flex-1 bg-gray-100 text-text-secondary font-inter font-semibold text-sm py-2 px-4 rounded-lg border border-border-light hover:bg-gray-200 transition-colors"
+            className="flex-1 bg-secondary/70 text-text-secondary font-inter font-semibold text-sm py-2 px-4 rounded-lg border border-white/10 hover:bg-secondary transition-colors"
           >
             Editar
           </button>

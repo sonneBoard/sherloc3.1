@@ -5,10 +5,10 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { supabase } from '../supabaseClient';
 
-// --- 1. DEFINIÇÃO DOS NOSSOS ÍCONES PERSONALIZADOS (SVG) ---
+// --- As suas definições de SVG e Ícones Personalizados foram mantidas ---
 const goldPinSvg = `
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#FBBF24"/>
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#CCA43B"/>
   </svg>
 `;
 
@@ -18,69 +18,57 @@ const coralPinSvg = `
   </svg>
 `;
 
-// --- 2. CRIAÇÃO DOS ÍCONES LEAFLET ---
-const goldIcon = L.divIcon({
-  html: goldPinSvg,
-  className: '', // Remove a classe padrão para não ter fundo branco
-  iconSize: [32, 32],
-  iconAnchor: [16, 32], // A ponta do pino
-  popupAnchor: [0, -32] // Onde o popup deve aparecer em relação ao ícone
-});
-
-const coralIcon = L.divIcon({
-  html: coralPinSvg,
-  className: '',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32]
-});
+const goldIcon = L.divIcon({ html: goldPinSvg, className: '', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32] }); //
+const coralIcon = L.divIcon({ html: coralPinSvg, className: '', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32] }); //
 
 
 const Mapa = ({ onAddRequest }) => {
-  const mapRef = useRef(null);
-  const [locations, setLocations] = useState([]);
+  const mapContainerRef = useRef(null); // Ref para o <div> do mapa
+  const mapRef = useRef(null);          // Ref para a instância do mapa
+  const [locations, setLocations] = useState([]); //
 
-  // Seus useEffects para buscar locais e iniciar o mapa continuam os mesmos
+  // useEffect para buscar os locais foi mantido
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const { data, error } = await supabase.from('locations').select('*');
-        if (error) throw error;
-        if (data) setLocations(data);
+        const { data, error } = await supabase.from('locations').select('*'); //
+        if (error) throw error; //
+        if (data) setLocations(data); //
       } catch (error) {
-        console.error("Erro ao buscar os locais:", error);
+        console.error("Erro ao buscar os locais:", error); //
       }
     };
     fetchLocations();
-  }, []);
+  }, []); //
 
+  // useEffect ÚNICO e ROBUSTO para gerir o mapa e os marcadores
   useEffect(() => {
-    if (!mapRef.current) {
+    // Só inicializa o mapa se o <div> existir e o mapa ainda não tiver sido criado
+    if (mapContainerRef.current && !mapRef.current) {
       const position = [-20.7205, -47.8885]; 
-      const map = L.map('map').setView(position, 15);
+      // Passamos a ref do <div> diretamente para o L.map()
+      const map = L.map(mapContainerRef.current).setView(position, 15);
       mapRef.current = map;
+
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
+      
+      // invalidateSize agora é chamado com segurança, pois o mapa já tem um container
       setTimeout(() => map.invalidateSize(), 10);
     }
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, []);
 
-  // --- 3. EFEITO ATUALIZADO PARA ADICIONAR MARCADORES PERSONALIZADOS ---
-  useEffect(() => {
+    // Lógica para adicionar/atualizar marcadores (foi mantida)
     if (mapRef.current && locations.length > 0) {
+      // Limpa marcadores antigos para evitar duplicação
+      mapRef.current.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+          mapRef.current.removeLayer(layer);
+        }
+      });
+
       locations.forEach(location => {
-        // Usamos o nosso ícone dourado personalizado como padrão
-        const marker = L.marker([location.latitude, location.longitude], { 
-          icon: goldIcon 
-        }).addTo(mapRef.current);
-        
+        const marker = L.marker([location.latitude, location.longitude], { icon: goldIcon }).addTo(mapRef.current); //
         const popupContent = `
           <div style="font-family: 'Lexend', sans-serif;">
             <h3 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 16px; margin-bottom: 5px;">${location.name}</h3>
@@ -89,39 +77,31 @@ const Mapa = ({ onAddRequest }) => {
               Adicionar ao Roteiro
             </button>
           </div>
-        `;
+        `; //
         
-        marker.bindPopup(popupContent);
+        marker.bindPopup(popupContent); //
+        
+        marker.on('mouseover', function () { this.setIcon(coralIcon); }); //
+        marker.on('mouseout', function () { this.setIcon(goldIcon); }); //
 
-        // Adicionamos os eventos de HOVER
-        marker.on('mouseover', function (e) {
-          this.setIcon(coralIcon); // Muda para o ícone coral
-        });
-        marker.on('mouseout', function (e) {
-          this.setIcon(goldIcon); // Volta para o ícone dourado
-        });
-
-        // A "ponte" entre Leaflet e React continua a mesma
         marker.on('popupopen', (e) => {
-          const btn = e.popup.getElement().querySelector('.add-to-itinerary-btn');
+          const btn = e.popup.getElement().querySelector('.add-to-itinerary-btn'); //
           if (btn) {
-            btn.onclick = () => {
-              onAddRequest(location);
-            };
+            btn.onclick = () => onAddRequest(location); //
           }
-        });
+        }); //
       });
     }
-  }, [locations, onAddRequest]);
+  }, [locations, onAddRequest]); // Depende das localizações para atualizar os marcadores
 
-  // Seu JSX com o hack de estilo para o botão do popup
   return (
     <>
       <style>
         {`
+          /* Seus estilos para o botão do popup e z-index foram mantidos */
           .add-to-itinerary-btn {
-            background-color: #FBBF24; /* Dourado */
-            color: white;
+            background-color: #CCA43B;
+            color: #0D0D12;
             border: none;
             padding: 8px 12px;
             border-radius: 8px;
@@ -132,11 +112,18 @@ const Mapa = ({ onAddRequest }) => {
             transition: background-color 0.2s;
           }
           .add-to-itinerary-btn:hover {
-            background-color: #EF4444; /* Coral */
+            filter: brightness(1.1);
+          }
+          .leaflet-marker-pane {
+            z-index: 650 !important;
+          }
+          .leaflet-popup-pane {
+            z-index: 700 !important;
           }
         `}
       </style>
-      <div id="map" style={{ height: '100%', width: '100%' }}></div>
+      {/* Ligamos a ref ao nosso <div>, que agora não precisa mais de um id="map" */}
+      <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }}></div>
     </>
   );
 };
