@@ -1,11 +1,13 @@
+// src/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { FiBookOpen, FiMapPin, FiAward } from "react-icons/fi";
 import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
+import { useModals } from '../components/MainLayout'; // Importamos o hook do nosso Contexto
 
-// --- Skeleton Loader atualizado para o tema cinematográfico ---
+// --- Componente para o Skeleton Loader (completo) ---
 const CardSkeleton = () => (
   <div className="glass-card p-6 rounded-2xl flex items-center space-x-4">
     <div className="bg-secondary/50 p-3 rounded-lg w-12 h-12 animate-pulse"></div>
@@ -16,7 +18,7 @@ const CardSkeleton = () => (
   </div>
 );
 
-// --- Contador Animado com a nova cor Dourada ---
+// --- Contador Animado (completo) ---
 const AnimatedStat = ({ value }) => (
   <CountUp
     end={value}
@@ -30,8 +32,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ itineraries: 0, locations: 0, badges: 0 });
   const [recentItineraries, setRecentItineraries] = useState([]);
+  const { setSelectedItineraryId } = useModals(); // Usamos o hook para pegar a função de abrir o modal
 
-  // A sua lógica para buscar os dados reais foi mantida
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -64,17 +66,14 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-
     // Usando um timeout para garantir que vejamos a animação do skeleton
     const timer = setTimeout(() => {
       fetchData();
     }, 1500);
 
     return () => clearTimeout(timer);
-    
   }, []);
 
-  // Suas variantes de animação foram mantidas
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -109,7 +108,6 @@ const Dashboard = () => {
           </>
         ) : (
           <>
-            {/* --- Cards de Estatística com o Novo Estilo Glass --- */}
             <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl flex items-center space-x-4">
               <div className="bg-accent-gold/10 p-3 rounded-lg"><FiBookOpen className="text-accent-gold" size={24}/></div>
               <div>
@@ -135,7 +133,6 @@ const Dashboard = () => {
         )}
       </motion.div>
 
-      {/* --- Card de Roteiros Recentes com o Novo Estilo Glass --- */}
       <motion.div 
         className="mt-8 glass-card p-6 rounded-2xl"
         initial={{ y: 20, opacity: 0 }}
@@ -152,7 +149,12 @@ const Dashboard = () => {
           <ul className="space-y-3">
             {recentItineraries.map(it => (
               <li key={it.id}>
-                <Link to={`/roteiro/${it.id}`} className="font-semibold text-text-secondary hover:text-accent-gold transition-colors">{it.name}</Link>
+                <button 
+                  onClick={() => setSelectedItineraryId(it.id)}
+                  className="font-semibold text-text-secondary hover:text-accent-gold transition-colors text-left"
+                >
+                  {it.name}
+                </button>
               </li>
             ))}
           </ul>

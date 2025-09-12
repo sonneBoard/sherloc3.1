@@ -1,18 +1,22 @@
+// src/components/Header.jsx
 import React from 'react';
 import { FiBell, FiUser } from "react-icons/fi";
-import { Link, useNavigate } from 'react-router-dom'; // 1. Importe o useNavigate
-import { supabase } from '../supabaseClient';     // 2. Importe o supabase
-import { toast } from 'react-hot-toast';          // 3. Importe o toast para notificações
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+import { toast } from 'react-hot-toast';
+import useAppStore from '../store/appStore'; // 1. Importamos o appStore
 
-const Header = ({ title, userEmail }) => {
-  const navigate = useNavigate(); // 4. Inicialize o hook de navegação
+const Header = ({ title }) => { // Simplificado para receber apenas title por enquanto
+  const navigate = useNavigate();
+  const clearUserSession = useAppStore(state => state.clearUserSession); // 2. Pegamos a nova ação
 
-  // 5. ATUALIZE A FUNÇÃO DE LOGOUT
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      // Redireciona para a página de login após o logout bem-sucedido
+
+      clearUserSession(); // 3. LIMPAMOS O ESTADO ANTES DE REDIRECIONAR
+
       navigate('/login');
       toast.success('Logout realizado com sucesso!');
     } catch (error) {
@@ -22,13 +26,13 @@ const Header = ({ title, userEmail }) => {
 
   return (
     <header className="flex justify-between items-center mb-8">
-      <h1 className="font-poppins text-3xl font-bold text-sherloc-text">{title}</h1>
+      <h1 className="font-poppins text-3xl font-bold text-text-primary">{title}</h1>
       <div className="flex items-center space-x-4">
-        <p className="text-sm text-gray-400 hidden sm:block">Olá, {userEmail ? userEmail.split('@')[0] : 'Viajante'}</p>
-        <button className="p-2 rounded-full hover:bg-sherloc-dark-2 transition-colors"><FiBell size={20} /></button>
-        <Link to="/perfil" className="p-2 rounded-full hover:bg-sherloc-dark-2 transition-colors"><FiUser size={20} /></Link>
-        {/* O botão agora chama a nossa nova função */}
-        <button onClick={handleLogout} className="bg-sherloc-purple text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+        {/* Lógica para mostrar email do usuário pode ser adicionada aqui depois */}
+        <p className="text-sm text-text-secondary hidden sm:block">Olá, Viajante</p>
+        <button className="p-2 rounded-full hover:bg-white/10 transition-colors"><FiBell size={20} /></button>
+        <Link to="/perfil" className="p-2 rounded-full hover:bg-white/10 transition-colors"><FiUser size={20} /></Link>
+        <button onClick={handleLogout} className="bg-accent-gold text-primary font-inter font-bold text-sm px-4 py-2 rounded-lg hover:brightness-110 transition-colors">
           Logout
         </button>
       </div>

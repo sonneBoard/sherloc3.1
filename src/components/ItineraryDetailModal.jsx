@@ -1,14 +1,13 @@
-// src/components/ItineraryDetailModal.jsx
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-// 1. Adicionamos o ícone de lixo (FiTrash2)
-import { FiX, FiMapPin, FiTrash2 } from 'react-icons/fi';
+import { FiX, FiMapPin, FiTrash2 } from 'react-icons/fi'; // Adicionamos o ícone de lixo
 
-// 2. O componente agora aceita a propriedade 'onDelete'
+// O componente agora aceita a propriedade 'onDelete'
 const ItineraryDetailModal = ({ itineraryId, onClose, onDelete }) => {
-  const [itinerary, setItinerary] = useState(null); //
-  const [loading, setLoading] = useState(true); //
+  const [itinerary, setItinerary] = useState(null);
+  const [loading, setLoading] = useState(true);
+
 
   // A sua lógica para buscar os detalhes do roteiro foi mantida
   useEffect(() => {
