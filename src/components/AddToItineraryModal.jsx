@@ -73,6 +73,17 @@ const AddToItineraryModal = ({ location, onClose, onNewItinerary }) => {
       }
       // -----------------------------
 
+      // NOVA LÓGICA: Badge "Planejador Mestre" (ID 3)
+      if (count === 10) {
+        const { error: badgeError } = await supabase.from('user_badges').insert([{ user_id: user.id, badge_id: 3 }]);
+        if (!badgeError) {
+          toast.success('✨ Conquista Desbloqueada: Planejador Mestre!', { icon: '🗺️' });
+        }
+      }
+      // ---------------------------------------------------
+
+  
+
         onClose();
       }
 

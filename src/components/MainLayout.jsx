@@ -1,5 +1,4 @@
-// src/components/MainLayout.jsx
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -10,19 +9,19 @@ import { motion } from 'framer-motion';
 import ItineraryDetailModal from './ItineraryDetailModal';
 import EditItineraryModal from './EditItineraryModal';
 
-// 1. Criamos um Contexto para partilhar as funções dos modais
 const ModalContext = createContext();
 export const useModals = () => useContext(ModalContext);
 
 const MainLayout = () => {
   const { isSidebarOpen, updateItinerary, removeItinerary } = useAppStore();
   const location = useLocation();
+  
+  // 1. Novo estado para controlar se a página foi rolada
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  // 2. O estado que controla os modais agora vive aqui, no componente-pai
   const [selectedItineraryId, setSelectedItineraryId] = useState(null);
   const [editingItineraryId, setEditingItineraryId] = useState(null);
 
-  // 3. As funções de Ação (editar e apagar) também vivem aqui
   const handleItineraryUpdated = (updatedItinerary) => {
     updateItinerary(updatedItinerary);
   };
@@ -40,19 +39,31 @@ const MainLayout = () => {
     }
   };
 
+  // 2. Efeito que deteta o scroll da página
+  useEffect(() => {
+    const handleScroll = () => {
+      // Se o scroll vertical for maior que 10 pixels, ativamos o estado
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    // Adiciona o "ouvinte" de scroll
+    window.addEventListener('scroll', handleScroll);
+    // Limpa o "ouvinte" quando o componente é desmontado para evitar erros
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const getTitle = () => {
     switch (location.pathname) {
-      case '/dashboard': return 'Dashboard'; //
-      case '/mapa': return 'Mapa Interativo'; //
-      case '/roteiros': return 'Meus Roteiros'; //
-      case '/perfil': return 'Meu Perfil'; //
-      case '/explorar': return 'Explorar Roteiros'; // Adicionado para a nova página
-      default: return 'Sherloc'; //
+      case '/dashboard': return 'Dashboard';
+      case '/mapa': return 'Mapa Interativo';
+      case '/roteiros': return 'Meus Roteiros';
+      case '/perfil': return 'Meu Perfil';
+      case '/explorar': return 'Explorar Roteiros';
+      default: return 'Sherloc';
     }
   };
 
   return (
-    // 4. O Provider "disponibiliza" os valores para todas as páginas filhas
     <ModalContext.Provider value={{ setSelectedItineraryId, setEditingItineraryId }}>
       <div className="min-h-screen bg-primary text-text-primary">
         <Toaster position="top-center" toastOptions={{ className: 'glass-card', style: { background: 'rgba(26, 27, 38, 0.7)', color: '#E0E0E0' }, }}/>
@@ -62,11 +73,16 @@ const MainLayout = () => {
           animate={{ marginLeft: isSidebarOpen ? '16rem' : '5rem' }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
         >
-          <Header title={getTitle()} />
+          {/* 3. O Header agora está dentro de um container sticky */}
+          <motion.header
+            className={`sticky top-0 z-40 transition-all duration-300 mb-8 -mx-8 px-8 ${isScrolled ? 'pt-6 pb-4 glass-card' : 'pt-0 pb-0'}`}
+          >
+            <Header title={getTitle()} />
+          </motion.header>
+          
           <Outlet />
         </motion.main>
 
-        {/* 5. Os modais agora são renderizados aqui, no topo da aplicação */}
         {selectedItineraryId && (
           <ItineraryDetailModal 
             itineraryId={selectedItineraryId} 

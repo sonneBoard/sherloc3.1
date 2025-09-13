@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import ExplorePage from './pages/ExplorePage'; // 1. Importe a nova página
+import SmoothScroll from './components/SmoothScroll'; 
 
 // Importações
 import App from './App'; // O "porteiro" da rota principal
@@ -17,6 +18,7 @@ import Profile from './pages/Profile';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <SmoothScroll>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
@@ -39,6 +41,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
+    </SmoothScroll> 
   </React.StrictMode>,
 );
 

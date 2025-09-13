@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-// --- CORREÇÃO AQUI: Adicionamos o FiChevronDown à lista ---
 import { FiMapPin, FiBookOpen, FiAward, FiMessageSquare, FiChevronDown } from 'react-icons/fi'; 
 import Footer from '../components/Footer';
-
 
 const DarkVeilAnimation = () => (
   <div className="bg-animation">
@@ -20,7 +18,6 @@ const testimonials = [
   { quote: "Finalmente uma ferramenta que entende o que um explorador precisa. O mapa interativo e as conquistas são geniais.", name: "Bruno G.", role: "Aventureiro" },
   { quote: "Usei para planejar uma viagem em família e foi um sucesso. Ter todos os locais organizados num só lugar não tem preço.", name: "Sofia M.", role: "Planejadora de Viagens" }
 ];
-
 
 const featureHighlights = [
   {
@@ -40,8 +37,6 @@ const featureHighlights = [
   }
 ];
 
-
-// --- DADOS E COMPONENTES DO FAQ QUE ESTAVAM EM FALTA ---
 const faqData = [
   { question: "O Sherloc é gratuito?", answer: "Sim! As funcionalidades principais do Sherloc, como a criação de roteiros e a descoberta de locais, são totalmente gratuitas. Planeamos introduzir funcionalidades 'Pro' opcionais no futuro." },
   { question: "Os meus roteiros são privados?", answer: "Por padrão, todos os roteiros que você cria são privados. Você tem a opção de torná-los públicos para que outros membros da comunidade possam se inspirar na sua viagem." },
@@ -76,55 +71,66 @@ const AccordionItem = ({ question, answer }) => {
     </div>
   );
 };
-// ---------------------------------------------------
-const LandingPage = () => {
-  // 1. Estado para guardar o índice do testemunho ativo
-  const [activeIndex, setActiveIndex] = useState(0);
 
-  // 2. Temporizador para mudar o testemunho a cada 5 segundos
+const LandingPage = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [activeFeatureIndex, setActiveFeatureIndex] = useState(0); // Novo estado para a imagem ativa
+
   useEffect(() => {
     const interval = setInterval(() => {
-      // Avança para o próximo índice, voltando a 0 no final
       setActiveIndex((current) => (current + 1) % testimonials.length);
-    }, 5000); // Muda a cada 5 segundos
-    
-    // Limpa o temporizador quando o componente é desmontado para evitar erros
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
- return (
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
+  const parallaxOffset = (strength) => ({
+    x: (mousePosition.x - window.innerWidth / 2) * strength,
+    y: (mousePosition.y - window.innerHeight / 2) * strength,
+  });
+
+  return (
     <div className="bg-primary text-text-primary font-inter">
-      {/* --- Seção Hero --- */}
       <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
         <DarkVeilAnimation />
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-primary to-transparent z-10"></div>
         
-        <motion.div
-          className="relative z-10 p-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        >
-          <h1 className="font-montserrat text-5xl md:text-7xl font-bold text-accent-glow">
-            Seu Mundo. Seus Roteiros.
-          </h1>
-          <p className="font-poppins text-lg md:text-xl text-text-primary mt-4 max-w-2xl mx-auto">
-            Descubra lugares incríveis e planeje viagens inesquecíveis com Sherloc. A aventura da sua vida começa aqui.
-          </p>
-          <Link to="/login">
-            <motion.button
-              className="mt-8 font-inter font-semibold text-primary bg-accent-gold py-3 px-8 rounded-full shadow-lg shadow-accent-gold/20 hover:brightness-110 transition-all duration-300"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Começar a Explorar
-            </motion.button>
-          </Link>
-        </motion.div>
+        <div className="relative z-10 p-8 flex flex-col items-center">
+          <motion.div animate={{ translateX: parallaxOffset(-0.02).x, translateY: parallaxOffset(-0.02).y }}>
+            <h1 className="font-montserrat text-5xl md:text-7xl font-bold text-accent-glow">
+              Seu Mundo. Seus Roteiros.
+            </h1>
+          </motion.div>
+          
+          <motion.div animate={{ translateX: parallaxOffset(0.015).x, translateY: parallaxOffset(0.015).y }}>
+            <p className="font-poppins text-lg md:text-xl text-text-primary mt-4 max-w-2xl mx-auto">
+              Descubra lugares incríveis e planeje viagens inesquecíveis com Sherloc. A aventura da sua vida começa aqui.
+            </p>
+          </motion.div>
+          
+          <motion.div animate={{ translateX: parallaxOffset(-0.01).x, translateY: parallaxOffset(-0.01).y }}>
+            <Link to="/login">
+              <motion.button
+                className="mt-8 font-inter font-semibold text-primary bg-accent-gold py-3 px-8 rounded-full shadow-lg shadow-accent-gold/20 hover:brightness-110"
+                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              >
+                Começar a Explorar
+              </motion.button>
+            </Link>
+          </motion.div>
+        </div>
       </section>
 
-
-      {/* --- Seção de Funcionalidades com Efeito Glass --- */}
       <section id="features" className="py-20 px-8">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="font-poppins text-4xl font-bold text-text-primary mb-4">
@@ -134,7 +140,6 @@ const LandingPage = () => {
             Todas as ferramentas que você precisa para transformar uma simples viagem em uma jornada memorável.
           </p>
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Card 1 */}
             <div className="glass-card p-8 rounded-2xl flex flex-col items-center">
               <div className="bg-accent-gold/10 p-4 rounded-full mb-4">
                 <FiMapPin size={32} className="text-accent-gold" />
@@ -144,7 +149,6 @@ const LandingPage = () => {
                 Descubra joias escondidas com nosso mapa interativo e avaliações da comunidade.
               </p>
             </div>
-            {/* Card 2 */}
             <div className="glass-card p-8 rounded-2xl flex flex-col items-center">
               <div className="bg-accent-gold/10 p-4 rounded-full mb-4">
                 <FiBookOpen size={32} className="text-accent-gold" />
@@ -154,7 +158,6 @@ const LandingPage = () => {
                 Monte, salve e compartilhe roteiros personalizados de forma visual e intuitiva.
               </p>
             </div>
-            {/* Card 3 */}
             <div className="glass-card p-8 rounded-2xl flex flex-col items-center">
               <div className="bg-accent-gold/10 p-4 rounded-full mb-4">
                 <FiAward size={32} className="text-accent-gold" />
@@ -168,15 +171,12 @@ const LandingPage = () => {
         </div>
       </section>
 
-        {/* --- SEÇÃO DE TESTEMUNHOS ATUALIZADA COM CARROSSEL --- */}
       <section id="testimonials" className="py-20 px-8">
         <div className="max-w-3xl mx-auto text-center relative h-48 flex items-center">
           <FiMessageSquare size={80} className="text-accent-gold/10 absolute top-0 left-1/2 -translate-x-1/2" />
-          
-          {/* 3. AnimatePresence para animar a entrada e saída */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeIndex} // A chave única garante que o Framer Motion detete a mudança
+              key={activeIndex}
               className="w-full"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -195,24 +195,23 @@ const LandingPage = () => {
         </div>
       </section>
 
-       {/* --- NOVA SEÇÃO DE TEXTO E IMAGEM ANIMADA --- */}
+      {/* --- SEÇÃO DE SCROLLYTELLING ATUALIZADA --- */}
       <section id="scrolly-features" className="py-24 px-8">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           
-          {/* Coluna da Esquerda: Textos que rolam */}
           <div className="lg:py-16">
             <h2 className="font-poppins text-4xl font-bold text-text-primary mb-12">
               Tudo o que Você Precisa para Viajar
             </h2>
-            <div className="space-y-24">
+            <div className="space-y-32">
               {featureHighlights.map((feature, index) => (
                 <motion.div 
                   key={index}
                   className="flex flex-col gap-4"
-                  initial={{ opacity: 0 }}
+                  onViewportEnter={() => setActiveFeatureIndex(index)}
+                  initial={{ opacity: 0.3 }}
                   whileInView={{ opacity: 1 }}
-                  viewport={{ once: false, amount: 0.8 }} // Anima quando 80% do elemento está visível
-                  transition={{ duration: 0.6 }}
+                  viewport={{ margin: "-200px 0px -200px 0px" }}
                 >
                   <h3 className="font-poppins text-2xl font-bold text-accent-gold">{feature.title}</h3>
                   <p className="text-text-secondary">{feature.description}</p>
@@ -221,24 +220,27 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Coluna da Direita: Imagem "Fixa" */}
           <div className="h-[600px] sticky top-24">
-            {/* Usamos o index do primeiro item visível para a imagem, mas pode ser melhorado */}
-            <img 
-              src={featureHighlights[0].image} 
-              alt="Visualização do Sherloc" 
-              className="w-full h-full object-cover rounded-2xl shadow-2xl"
-            />
+            <AnimatePresence>
+              <motion.img 
+                key={activeFeatureIndex}
+                src={featureHighlights[activeFeatureIndex].image} 
+                alt="Visualização do Sherloc" 
+                className="w-full h-full object-cover rounded-2xl shadow-2xl absolute inset-0"
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.6, ease: 'easeInOut' }}
+              />
+            </AnimatePresence>
           </div>
         </div>
       </section>
-
- {/* --- Seção de FAQ --- */}
+      
       <section id="faq" className="py-20 px-8">
         <div className="max-w-3xl mx-auto">
           <h2 className="font-poppins text-4xl font-bold text-text-primary text-center mb-12">Perguntas Frequentes</h2>
           <div className="glass-card p-6 rounded-2xl">
-            {/* Agora esta linha funciona, pois 'faqData' e 'AccordionItem' foram definidos */}
             {faqData.map((faq, index) => (
               <AccordionItem key={index} question={faq.question} answer={faq.answer} />
             ))}
