@@ -1,3 +1,4 @@
+// src/components/Header.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { FiUser, FiLogOut, FiChevronDown, FiSearch, FiCompass, FiPlus } from "react-icons/fi";
 import { Link, useNavigate } from 'react-router-dom';
@@ -9,18 +10,15 @@ import Portal from './Portal';
 
 const Header = () => {
   const navigate = useNavigate();
-  const clearUserSession = useAppStore(state => state.clearUserSession);
+  const logoutUser = useAppStore(state => state.logoutUser);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null); // Ref para o botão que abre o dropdown
+  const dropdownRef = useRef(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const headerRef = useRef(null);
-  
-  // 1. Novo estado para guardar os estilos de posicionamento do dropdown
   const [dropdownStyles, setDropdownStyles] = useState({});
 
-  // Sua lógica de fetchProfile não muda
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -48,22 +46,19 @@ const Header = () => {
     fetchProfile();
   }, []);
 
-  // 2. useEffect para calcular a posição do dropdown quando ele abre
   useEffect(() => {
     if (isDropdownOpen && dropdownRef.current) {
       const rect = dropdownRef.current.getBoundingClientRect();
       setDropdownStyles({
-        top: `${rect.bottom + 8}px`, // Abaixo do botão + 8px de margem
-        right: `${window.innerWidth - rect.right}px`, // Alinhado à direita do botão
+        top: `${rect.bottom + 8}px`,
+        right: `${window.innerWidth - rect.right}px`,
       });
     }
   }, [isDropdownOpen]);
 
-  // useEffect para fechar ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
       const portal = document.getElementById('portal-root');
-      // Fecha o dropdown se o clique for fora do botão E fora do menu no portal
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) && portal && !portal.contains(event.target)) {
         setIsDropdownOpen(false);
       }
@@ -78,13 +73,10 @@ const Header = () => {
   const handleLogout = async () => {
     setIsDropdownOpen(false);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      clearUserSession();
-      navigate('/login');
+      await logoutUser(navigate);
       toast.success('Logout realizado com sucesso!');
     } catch (error) {
-      toast.error('Erro ao fazer logout:', error.message);
+      toast.error('Erro ao fazer logout.');
     }
   };
 
@@ -131,7 +123,7 @@ const Header = () => {
         
         <div className="relative">
             <button 
-                ref={dropdownRef} // A ref agora está no botão, nosso ponto de referência
+                ref={dropdownRef}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 p-1 rounded-full hover:bg-white/10 transition-colors"
             >
@@ -147,7 +139,7 @@ const Header = () => {
                   {isDropdownOpen && (
                       <motion.div 
                           className="fixed w-56 glass-card rounded-xl shadow-lg z-[1000]"
-                          style={dropdownStyles} // 3. Aplicamos os estilos calculados dinamicamente
+                          style={dropdownStyles}
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}

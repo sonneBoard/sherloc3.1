@@ -4,19 +4,19 @@ import { create } from 'zustand';
 import { supabase } from '../supabaseClient';
 
 const useAppStore = create((set, get) => ({
-  // --- Estado da Sidebar (mantido) ---
+  // --- Estado da Sidebar ---
   isSidebarOpen: false,
+  isSidebarPinned: false, // Novo estado para controlar se a sidebar está fixa
   openSidebar: () => set({ isSidebarOpen: true }),
   closeSidebar: () => set({ isSidebarOpen: false }),
+  toggleSidebarPin: () => set(state => ({ isSidebarPinned: !state.isSidebarPinned })), // Nova ação
 
   // --- ESTADO E AÇÕES PARA ROTEIROS ---
   itineraries: [],
   isLoadingItineraries: true,
   
-  // Ação para buscar os roteiros no Supabase
-  fetchItineraries: async () => {
-    // A lógica de otimização foi levemente ajustada para a nova função de limpeza
-    if (get().itineraries.length > 0 && !get().isLoadingItineraries) {
+  fetchItineraries: async (forceRefetch = false) => {
+    if (!forceRefetch && get().itineraries.length > 0 && !get().isLoadingItineraries) {
       return;
     }
 
@@ -26,7 +26,7 @@ const useAppStore = create((set, get) => ({
       if (user) {
         const { data, error } = await supabase
           .from('itineraries')
-          .select('id, name, description, image_url')
+          .select('*') // Buscamos todos os dados para o ItineraryListItem
           .eq('created_by', user.id)
           .order('created_at', { ascending: false });
         
@@ -40,35 +40,47 @@ const useAppStore = create((set, get) => ({
     }
   },
 
-  // Ação para adicionar um novo roteiro à lista
   addItinerary: (newItinerary) => {
     set(state => ({
       itineraries: [newItinerary, ...state.itineraries]
     }));
   },
 
-  // Ação para atualizar um roteiro na lista
   updateItinerary: (updatedItinerary) => {
     set(state => ({
       itineraries: state.itineraries.map(it => 
-        it.id === updatedItinerary.id ? updatedItinerary : it
+        it.id === updatedItinerary.id ? { ...it, ...updatedItinerary } : it
       )
     }));
   },
 
-  // Ação para remover um roteiro
   removeItinerary: (itineraryId) => {
     set(state => ({
       itineraries: state.itineraries.filter(it => it.id !== itineraryId)
     }));
   },
 
-  // --- NOVA AÇÃO PARA LIMPAR A SESSÃO ---
   clearUserSession: () => {
     set({
       itineraries: [],
       isLoadingItineraries: true,
+      // Resetamos também o estado da sidebar ao sair
+      isSidebarOpen: false,
+      isSidebarPinned: false,
     });
+  },
+
+  // --- AÇÃO DE LOGOUT CENTRALIZADA ---
+  logoutUser: async (navigate) => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      get().clearUserSession();
+      navigate('/login');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error.message);
+      throw error;
+    }
   },
 }));
 

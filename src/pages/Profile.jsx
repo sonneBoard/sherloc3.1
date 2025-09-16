@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { motion } from 'framer-motion';
-import { FiUser } from 'react-icons/fi';
+import { FiUser, FiEdit } from 'react-icons/fi';
 import Badge from '../components/Badge';
+import EditProfileModal from '../components/EditProfileModal';
 
-// --- NOVO COMPONENTE SKELETON PARA O PERFIL ---
 const ProfileSkeleton = () => (
   <div>
-    <div className="h-10 w-1/3 bg-secondary/50 rounded-lg animate-pulse mb-8"></div>
+    <div className="flex justify-between items-center mb-8">
+      <div className="h-10 w-1/3 bg-secondary/50 rounded-lg animate-pulse"></div>
+      <div className="h-10 w-32 bg-secondary/50 rounded-lg animate-pulse"></div>
+    </div>
     
-    {/* Skeleton do Card Principal */}
     <div className="glass-card p-8 rounded-2xl text-center flex flex-col items-center">
       <div className="w-32 h-32 rounded-full bg-secondary/50 animate-pulse mb-4"></div>
       <div className="h-8 w-1/2 bg-secondary/50 rounded-md animate-pulse mb-2"></div>
@@ -23,7 +25,6 @@ const ProfileSkeleton = () => (
       </div>
     </div>
 
-    {/* Skeleton da Seção de Conquistas */}
     <div className="mt-8">
       <div className="h-8 w-1/4 bg-secondary/50 rounded-lg animate-pulse mb-4"></div>
       <div className="glass-card p-6 rounded-2xl">
@@ -43,45 +44,43 @@ const ProfileSkeleton = () => (
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
-  const [badges, setBadges] = useState([]);
+  const [allBadges, setAllBadges] = useState([]); // 1. Novo estado para TODOS os badges
+  const [earnedBadgeIds, setEarnedBadgeIds] = useState(new Set()); // Para verificação rápida
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const fetchProfileData = useCallback(async () => {
+    try {
+      if (!loading) setLoading(true); // Garante o loading ao re-buscar
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // 2. Agora buscamos o perfil, e todos os badges do sistema em paralelo
+        const [profileRes, allBadgesRes] = await Promise.all([
+          supabase.from('profiles').select('*, user_badges(badge_id)').eq('id', user.id).single(),
+          supabase.from('badges').select('*').order('id')
+        ]);
+
+        if (profileRes.error) throw profileRes.error;
+        if (allBadgesRes.error) throw allBadgesRes.error;
+
+        setProfile({ ...profileRes.data, email: user.email });
+        setAllBadges(allBadgesRes.data || []);
+        
+        // Criamos um Set com os IDs dos badges ganhos para uma verificação rápida e eficiente
+        const earnedIds = new Set(profileRes.data.user_badges.map(ub => ub.badge_id));
+        setEarnedBadgeIds(earnedIds);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar dados do perfil:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removida a dependência 'loading' para evitar loops
 
   useEffect(() => {
-    // A função foi definida como 'fetchProfile'
-    const fetchProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const [profileResponse, badgesResponse] = await Promise.all([
-            supabase.from('profiles').select('username, xp, level').eq('id', user.id).single(),
-            supabase.from('user_badges').select('badges(name, description, image_url)').eq('user_id', user.id)
-          ]);
-          
-          if (profileResponse.error) throw profileResponse.error;
-          if (badgesResponse.error) throw badgesResponse.error;
-          
-          if (profileResponse.data) {
-            setProfile({ ...profileResponse.data, email: user.email });
-          }
-          if (badgesResponse.data) {
-            setBadges(badgesResponse.data.map(item => item.badges));
-          }
-        }
-      } catch (error) {
-        console.error("Erro ao buscar dados do perfil:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchProfileData();
+  }, [fetchProfileData]);
 
-    // --- CORREÇÃO AQUI ---
-    // Chamamos a função pelo nome correto: 'fetchProfile'
-    fetchProfile();
-
-  }, []);
-
-  // Se o carregamento estiver a decorrer, mostramos o Skeleton
   if (loading) {
     return <ProfileSkeleton />;
   }
@@ -91,8 +90,7 @@ const Profile = () => {
   }
 
   const xpForNextLevel = (profile.level || 1) * 100;
-  const progressPercentage = (profile.xp / xpForNextLevel) * 100;
-
+  const progressPercentage = profile.xp ? (profile.xp / xpForNextLevel) * 100 : 0;
 
    return (
     <motion.div
@@ -100,19 +98,29 @@ const Profile = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <h1 className="font-poppins text-4xl font-bold mb-8 text-text-primary">Meu Perfil</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="font-poppins text-4xl font-bold text-text-primary">Meu Perfil</h1>
+        <button 
+          onClick={() => setIsEditModalOpen(true)}
+          className="flex items-center gap-2 bg-secondary/70 text-text-secondary font-inter font-semibold text-sm py-2 px-4 rounded-lg border border-white/10 hover:bg-secondary transition-colors"
+        >
+          <FiEdit size={16} />
+          <span>Editar Perfil</span>
+        </button>
+      </div>
       
-      {/* Card Principal do Usuário com estilo .glass-card */}
       <div className="glass-card p-8 rounded-2xl text-center flex flex-col items-center">
-        <div className="w-32 h-32 rounded-full border-4 border-accent-gold bg-secondary flex items-center justify-center mb-4">
-          <FiUser size={64} className="text-text-secondary" />
-        </div>
+        <img
+          src={profile.avatar_url || `https://ui-avatars.com/api/?name=${profile.username}&background=2D2E37&color=E0E0E0`}
+          alt={`Avatar de ${profile.username}`}
+          className="w-32 h-32 rounded-full border-4 border-accent-gold object-cover bg-secondary mb-4"
+        />
         <h2 className="font-poppins text-3xl font-bold text-accent-glow">{profile.username}</h2>
         <p className="text-text-secondary">{profile.email}</p>
         <div className="w-full max-w-sm mt-6">
           <div className="flex justify-between items-end mb-1">
             <span className="font-inter font-bold text-accent-gold">Nível {profile.level || 1}</span>
-            <span className="text-sm font-semibold text-text-secondary">{profile.xp} / {xpForNextLevel} XP</span>
+            <span className="text-sm font-semibold text-text-secondary">{profile.xp || 0} / {xpForNextLevel} XP</span>
           </div>
           <div className="w-full bg-secondary rounded-full h-3">
             <motion.div 
@@ -125,21 +133,33 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Seção de Conquistas com estilo .glass-card */}
       <div className="mt-8">
-        <h3 className="font-poppins text-2xl font-bold mb-4 text-text-primary">Minhas Conquistas</h3>
+        <h3 className="font-poppins text-2xl font-bold mb-4 text-text-primary">Conquistas</h3>
         <div className="glass-card p-6 rounded-2xl">
-          {badges.length > 0 ? (
+          {allBadges.length > 0 ? (
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-6">
-              {badges.map((badge, index) => (
-                <Badge key={index} badge={badge} />
-              ))}
+              {allBadges.map((badge) => {
+                const hasEarned = earnedBadgeIds.has(badge.id);
+                return (
+                  <Badge 
+                    key={badge.id} 
+                    badge={badge} 
+                    isUnlocked={hasEarned} // Passamos a informação se está desbloqueado ou não
+                  />
+                );
+              })}
             </div>
           ) : (
-            <p className="text-text-secondary text-center">Você ainda não conquistou nenhuma medalha. Continue explorando!</p>
+            <p className="text-text-secondary text-center">Nenhuma conquista disponível no momento.</p>
           )}
         </div>
       </div>
+      
+      <EditProfileModal 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onProfileUpdated={fetchProfileData}
+      />
     </motion.div>
   );
 };
