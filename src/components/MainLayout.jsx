@@ -40,18 +40,13 @@ const MainLayout = () => {
   };
 
   // 2. Efeito que deteta o scroll da página
-  useEffect(() => {
+   useEffect(() => {
     const handleScroll = () => {
-      // Se o scroll vertical for maior que 10 pixels, ativamos o estado
       setIsScrolled(window.scrollY > 10);
     };
-
-    // Adiciona o "ouvinte" de scroll
     window.addEventListener('scroll', handleScroll);
-    // Limpa o "ouvinte" quando o componente é desmontado para evitar erros
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
   const getTitle = () => {
     switch (location.pathname) {
       case '/dashboard': return 'Dashboard';
@@ -63,25 +58,35 @@ const MainLayout = () => {
     }
   };
 
-  return (
+ return (
     <ModalContext.Provider value={{ setSelectedItineraryId, setEditingItineraryId }}>
       <div className="min-h-screen bg-primary text-text-primary">
         <Toaster position="top-center" toastOptions={{ className: 'glass-card', style: { background: 'rgba(26, 27, 38, 0.7)', color: '#E0E0E0' }, }}/>
         <Sidebar />
-        <motion.main 
-          className="p-8"
-          animate={{ marginLeft: isSidebarOpen ? '16rem' : '5rem' }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-        >
-          {/* 3. O Header agora está dentro de um container sticky */}
+
+        {/* --- ESTRUTURA CORRIGIDA --- */}
+        <div className="relative">
+          {/* 1. O Header agora é um irmão direto do 'main', com z-index alto */}
           <motion.header
-            className={`sticky top-0 z-40 transition-all duration-300 mb-8 -mx-8 px-8 ${isScrolled ? 'pt-6 pb-4 glass-card' : 'pt-0 pb-0'}`}
+            className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'py-2' : 'py-6'}`}
+            animate={{ paddingLeft: isSidebarOpen ? '16rem' : '5rem' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
-            <Header title={getTitle()} />
+            {/* O componente Header agora fica aqui dentro */}
+            <Header />
           </motion.header>
-          
-          <Outlet />
-        </motion.main>
+
+          {/* 2. O 'main' contém apenas o conteúdo da página, numa camada inferior */}
+          <motion.main 
+            className="p-8"
+            animate={{ marginLeft: isSidebarOpen ? '16rem' : '5rem' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <Outlet />
+          </motion.main>
+        </div>
+
+
 
         {selectedItineraryId && (
           <ItineraryDetailModal 

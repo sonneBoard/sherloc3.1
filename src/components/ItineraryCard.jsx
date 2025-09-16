@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FiUser } from 'react-icons/fi';
+import { FiUser, FiCopy } from 'react-icons/fi';
+
 
 // O card agora aceita uma nova prop: 'variant' ('my-itineraries' ou 'explore')
 const ItineraryCard = ({ itinerary, onViewMore, onEdit, onClone, variant = 'my-itineraries' }) => {
@@ -23,11 +24,17 @@ const ItineraryCard = ({ itinerary, onViewMore, onEdit, onClone, variant = 'my-i
         <h3 className="font-poppins text-xl font-bold text-text-primary mb-2">{itinerary.name}</h3>
         <p className="text-text-secondary text-sm mb-4 flex-grow">{itinerary.description || 'Uma aventura inesquecível espera por você.'}</p>
         
-        {/* Mostra o nome do criador se estiver na página Explorar */}
         {variant === 'explore' && itinerary.profiles && (
-          <div className="flex items-center gap-2 text-xs text-text-secondary mb-4">
-            <FiUser />
-            <span>Criado por {itinerary.profiles.username}</span>
+          <div className="flex items-center justify-between text-xs text-text-secondary mb-4">
+            <div className="flex items-center gap-2">
+              <FiUser />
+              <span>Criado por {itinerary.profiles.username}</span>
+            </div>
+            {/* --- NOVO CONTADOR DE POPULARIDADE --- */}
+            <div className="flex items-center gap-1.5" title={`${itinerary.clone_count || 0} vezes salvo`}>
+              <FiCopy />
+              <span>{itinerary.clone_count || 0}</span>
+            </div>
           </div>
         )}
 
