@@ -220,17 +220,29 @@ const LandingPage = () => {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="h-[600px] sticky top-24">
             <AnimatePresence>
+=======
+          <div className="h-[600px] sticky top-24 relative">
+            <AnimatePresence mode="wait">
+>>>>>>> master
               <motion.img 
                 key={activeFeatureIndex}
                 src={featureHighlights[activeFeatureIndex].image} 
                 alt="Visualização do Sherloc" 
                 className="w-full h-full object-cover rounded-2xl shadow-2xl absolute inset-0"
+<<<<<<< HEAD
                 initial={{ opacity: 0, scale: 1.05 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.6, ease: 'easeInOut' }}
+=======
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+>>>>>>> master
               />
             </AnimatePresence>
           </div>

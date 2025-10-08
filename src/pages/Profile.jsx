@@ -54,9 +54,16 @@ const Profile = () => {
       if (!loading) setLoading(true); // Garante o loading ao re-buscar
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+<<<<<<< HEAD
         // 2. Agora buscamos o perfil, e todos os badges do sistema em paralelo
         const [profileRes, allBadgesRes] = await Promise.all([
           supabase.from('profiles').select('*, user_badges(badge_id)').eq('id', user.id).single(),
+=======
+        // 2. Agora buscamos o perfil, badges ganhos com data, e todos os badges do sistema
+        const [profileRes, earnedBadgesRes, allBadgesRes] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', user.id).single(),
+          supabase.from('user_badges').select('badge_id, earned_at').eq('user_id', user.id).order('earned_at'),
+>>>>>>> master
           supabase.from('badges').select('*').order('id')
         ]);
 
@@ -64,11 +71,28 @@ const Profile = () => {
         if (allBadgesRes.error) throw allBadgesRes.error;
 
         setProfile({ ...profileRes.data, email: user.email });
+<<<<<<< HEAD
         setAllBadges(allBadgesRes.data || []);
         
         // Criamos um Set com os IDs dos badges ganhos para uma verificação rápida e eficiente
         const earnedIds = new Set(profileRes.data.user_badges.map(ub => ub.badge_id));
         setEarnedBadgeIds(earnedIds);
+=======
+        
+        // Ordenar badges: primeiro os conquistados (por data), depois os não conquistados
+        const earnedBadgeIds = new Set(earnedBadgesRes.data?.map(ub => ub.badge_id) || []);
+        const earnedBadges = earnedBadgesRes.data?.map(ub => ub.badge_id) || [];
+        const unlockedBadges = allBadgesRes.data?.filter(badge => earnedBadgeIds.has(badge.id)) || [];
+        const lockedBadges = allBadgesRes.data?.filter(badge => !earnedBadgeIds.has(badge.id)) || [];
+        
+        // Ordenar badges desbloqueados pela ordem de conquista
+        const sortedUnlockedBadges = earnedBadges.map(badgeId => 
+          unlockedBadges.find(badge => badge.id === badgeId)
+        ).filter(Boolean);
+        
+        setAllBadges([...sortedUnlockedBadges, ...lockedBadges]);
+        setEarnedBadgeIds(earnedBadgeIds);
+>>>>>>> master
       }
     } catch (error) {
       console.error("Erro ao buscar dados do perfil:", error);
@@ -89,8 +113,40 @@ const Profile = () => {
     return <div>Não foi possível carregar o perfil.</div>;
   }
 
+<<<<<<< HEAD
   const xpForNextLevel = (profile.level || 1) * 100;
   const progressPercentage = profile.xp ? (profile.xp / xpForNextLevel) * 100 : 0;
+=======
+  // Usar o sistema de níveis corrigido
+  const calculateLevel = (totalXp) => {
+    if (totalXp < 0) return { level: 1, currentLevelXp: 0, xpForNextLevel: 100 };
+    
+    let level = 1;
+    let xpUsed = 0;
+    
+    // Calcular o nível baseado no XP total acumulado
+    while (xpUsed + (level * 100) <= totalXp) {
+      xpUsed += level * 100;
+      level++;
+    }
+    
+    // XP atual no nível (quanto já foi ganho no nível atual)
+    const currentLevelXp = totalXp - xpUsed;
+    
+    // XP necessário para o próximo nível
+    const xpForNextLevel = level * 100;
+    
+    return {
+      level,
+      currentLevelXp,
+      xpForNextLevel,
+      totalXp
+    };
+  };
+  
+  const levelData = calculateLevel(profile.xp || 0);
+  const progressPercentage = levelData.xpForNextLevel > 0 ? (levelData.currentLevelXp / levelData.xpForNextLevel) * 100 : 0;
+>>>>>>> master
 
    return (
     <motion.div
@@ -113,14 +169,23 @@ const Profile = () => {
         <img
           src={profile.avatar_url || `https://ui-avatars.com/api/?name=${profile.username}&background=2D2E37&color=E0E0E0`}
           alt={`Avatar de ${profile.username}`}
+<<<<<<< HEAD
           className="w-32 h-32 rounded-full border-4 border-accent-gold object-cover bg-secondary mb-4"
+=======
+          className="w-32 h-32 rounded-full object-cover bg-secondary mb-4"
+>>>>>>> master
         />
         <h2 className="font-poppins text-3xl font-bold text-accent-glow">{profile.username}</h2>
         <p className="text-text-secondary">{profile.email}</p>
         <div className="w-full max-w-sm mt-6">
           <div className="flex justify-between items-end mb-1">
+<<<<<<< HEAD
             <span className="font-inter font-bold text-accent-gold">Nível {profile.level || 1}</span>
             <span className="text-sm font-semibold text-text-secondary">{profile.xp || 0} / {xpForNextLevel} XP</span>
+=======
+            <span className="font-inter font-bold text-accent-gold">Nível {levelData.level}</span>
+            <span className="text-sm font-semibold text-text-secondary">{levelData.currentLevelXp} / {levelData.xpForNextLevel} XP</span>
+>>>>>>> master
           </div>
           <div className="w-full bg-secondary rounded-full h-3">
             <motion.div 

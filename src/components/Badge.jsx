@@ -16,13 +16,20 @@ const Badge = ({ badge, isUnlocked = false }) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
+<<<<<<< HEAD
       {/* 1. Esta 'div' é a nova moldura circular */}
       <div
         className={`w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center p-2 border-2 border-transparent transition-all duration-300 ${isUnlocked ? 'border-accent-gold/30' : 'grayscale'}`}
+=======
+      {/* Imagem circular sem bordas */}
+      <div
+        className={`w-16 h-16 rounded-full overflow-hidden transition-all duration-300 ${isUnlocked ? '' : 'grayscale'}`}
+>>>>>>> master
       >
         <img
           src={badge.image_url}
           alt={badge.name}
+<<<<<<< HEAD
           // 2. A imagem agora se ajusta dentro da moldura
           className={`w-full h-full object-contain transition-all duration-300 ${isUnlocked ? '' : 'opacity-40'}`}
         />
@@ -32,6 +39,16 @@ const Badge = ({ badge, isUnlocked = false }) => {
       >
         {isUnlocked ? badge.name : '???'}
       </p>
+=======
+          className={`w-full h-full object-cover transition-all duration-300 ${isUnlocked ? '' : 'opacity-40'}`}
+        />
+      </div>
+      {isUnlocked && (
+        <p className="text-xs font-semibold text-text-secondary">
+          {badge.name}
+        </p>
+      )}
+>>>>>>> master
     </motion.div>
   );
 };

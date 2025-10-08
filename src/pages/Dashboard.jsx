@@ -49,8 +49,34 @@ const Dashboard = () => {
             supabase.rpc('get_total_locations_in_itineraries'),
             supabase.rpc('get_total_badges'),
           ]),
+<<<<<<< HEAD
           supabase.from('itineraries').select('*').order('created_at', { ascending: false }).limit(2),
           supabase.rpc('get_next_badge_to_earn'),
+=======
+          supabase.from('itineraries').select('*').eq('created_by', user.id).order('created_at', { ascending: false }).limit(2),
+          // Buscar próximo badge bloqueado
+          (async () => {
+            const { data: earnedBadges } = await supabase
+              .from('user_badges')
+              .select('badge_id')
+              .eq('user_id', user.id);
+            
+            const earnedBadgeIds = earnedBadges?.map(b => b.badge_id) || [];
+            
+            const { data: allBadges } = await supabase
+              .from('badges')
+              .select('*')
+              .order('id');
+            
+            // Encontrar primeiro badge não conquistado (apenas badges 1, 4, 5)
+            const targetBadges = [1, 4, 5]; // Pioneiro, Fotógrafo, Viajante do Tempo
+            const nextBadge = allBadges?.find(badge => 
+              targetBadges.includes(badge.id) && !earnedBadgeIds.includes(badge.id)
+            );
+            
+            return { data: nextBadge || null };
+          })(),
+>>>>>>> master
           supabase.from('activity_feed').select('*').order('created_at', { ascending: false }).limit(5) // Buscamos o feed de atividades
         ]);
 
@@ -143,7 +169,11 @@ const Dashboard = () => {
             <div className="glass-card p-6 rounded-2xl text-center h-full flex flex-col justify-center items-center">
               {nextBadge ? (
                 <>
+<<<<<<< HEAD
                   <img src={nextBadge.image_url} alt={nextBadge.name} className="w-20 h-20 mx-auto mb-4" />
+=======
+                  <img src={nextBadge.image_url} alt={nextBadge.name} className="w-20 h-20 mx-auto mb-4 object-cover rounded-full" />
+>>>>>>> master
                   <h3 className="font-poppins font-bold text-lg text-accent-glow">{nextBadge.name}</h3>
                   <p className="text-text-secondary mt-2 text-sm">{nextBadge.description}</p>
                 </>

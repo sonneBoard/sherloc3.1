@@ -1,7 +1,12 @@
 // src/components/Header.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { FiUser, FiLogOut, FiChevronDown, FiSearch, FiCompass, FiPlus } from "react-icons/fi";
+<<<<<<< HEAD
 import { Link, useNavigate } from 'react-router-dom';
+=======
+// 1. Adicionado 'useLocation' ao import
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+>>>>>>> master
 import { supabase } from '../supabaseClient';
 import { toast } from 'react-hot-toast';
 import useAppStore from '../store/appStore';
@@ -19,6 +24,12 @@ const Header = () => {
   const headerRef = useRef(null);
   const [dropdownStyles, setDropdownStyles] = useState({});
 
+<<<<<<< HEAD
+=======
+  // 2. Hook para obter a localização atual
+  const location = useLocation();
+
+>>>>>>> master
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -82,41 +93,72 @@ const Header = () => {
 
   return (
     <motion.header 
+<<<<<<< HEAD
       layout
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       ref={headerRef}
       className="max-w-3xl mx-auto glass-card rounded-full p-2 flex items-center gap-2 shadow-lg"
+=======
+      // 3. A prop 'layout' agora é condicional
+      layout={location.pathname !== '/mapa'} 
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      ref={headerRef}
+      className="max-w-3xl mx-auto glass-card rounded-full h-14 px-2 flex items-center gap-2 shadow-lg"
+>>>>>>> master
     >
       <motion.div layout className="flex-shrink-0 pl-4">
         <h1 className="font-montserrat text-xl font-bold text-accent-glow">Sherloc</h1>
       </motion.div>
 
+<<<<<<< HEAD
       <motion.div layout className="relative flex-grow flex items-center">
+=======
+      <motion.div layout className="relative flex-1 flex items-center h-full">
+>>>>>>> master
         <button onClick={() => setIsSearchOpen(true)} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary z-10">
           <FiSearch />
         </button>
         <AnimatePresence>
           {isSearchOpen && (
+<<<<<<< HEAD
             <motion.input 
               key="search-input"
               type="text"
               placeholder="Buscar roteiros ou locais..."
               className="w-full bg-secondary/50 rounded-full py-2 pl-12 pr-4 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-gold"
+=======
+           <motion.input 
+              key="search-input"
+              type="text"
+              placeholder="Buscar roteiros ou locais..."
+              className="w-full h-full bg-transparent rounded-full py-2 pl-12 pr-4 text-sm text-text-primary placeholder:text-text-secondary focus:outline-none"
+>>>>>>> master
               initial={{ opacity: 0, clipPath: 'inset(0 100% 0 0)' }}
               animate={{ opacity: 1, clipPath: 'inset(0 0% 0 0)' }}
               exit={{ opacity: 0, clipPath: 'inset(0 100% 0 0)' }}
               transition={{ duration: 0.4, ease: 'easeInOut' }}
               autoFocus
               onBlur={() => setIsSearchOpen(false)}
+<<<<<<< HEAD
             />
+=======
+           />
+>>>>>>> master
           )}
         </AnimatePresence>
       </motion.div>
 
+<<<<<<< HEAD
       <motion.div layout className="flex items-center gap-2">
         <button className="p-2 rounded-full hover:bg-white/10 transition-colors" title="Criar Novo Roteiro">
             <FiPlus size={20} />
         </button>
+=======
+      <motion.div layout className="flex items-center gap-2 flex-shrink-0">
+        <Link to="/mapa" className="p-2 rounded-full hover:bg-white/10 transition-colors" title="Criar Novo Roteiro">
+            <FiPlus size={20} />
+        </Link>
+>>>>>>> master
         <Link to="/explorar" className="p-2 rounded-full hover:bg-white/10 transition-colors" title="Explorar">
             <FiCompass size={20} />
         </Link>
@@ -147,7 +189,11 @@ const Header = () => {
                       >
                           <div className="p-3">
                               <p className="text-xs text-text-secondary">Olá,</p>
+<<<<<<< HEAD
                               <p className="font-semibold text-text-primary truncate">{loading ? 'Carregando...' : (profile?.username || 'Usuário')}</p>
+=======
+                              <p className="font-semibold text-text-primary truncate">{loading ? 'Carregando...' : (profile?.username || 'Usuário' )}</p>
+>>>>>>> master
                           </div>
                           <hr className="border-white/10" />
                           <ul>
@@ -174,4 +220,8 @@ const Header = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Header;
+=======
+export default Header;
+>>>>>>> master

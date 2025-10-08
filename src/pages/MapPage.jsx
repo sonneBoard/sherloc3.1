@@ -32,7 +32,11 @@ const MapPage = () => {
   };
 
   return (
+<<<<<<< HEAD
     <div className="h-[calc(100vh-150px)] flex gap-8">
+=======
+    <div className="h-[calc(100vh-120px)] flex gap-8 overflow-hidden">
+>>>>>>> master
       <MapControlSidebar 
         onNewItinerary={() => {
           setInitialLocationForCreate(null);

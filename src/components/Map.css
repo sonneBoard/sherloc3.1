@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 .leaflet-container {
   width: 100vw; /* 100% da largura da tela */
   height: 100vh; /* 100% da altura da tela */
+=======
+.leaflet-container {
+  width: 100vw; /* 100% da largura da tela */
+  height: 100vh; /* 100% da altura da tela */
+>>>>>>> master
 }

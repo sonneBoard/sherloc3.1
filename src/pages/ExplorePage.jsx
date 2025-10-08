@@ -13,7 +13,11 @@ const ExplorePage = () => {
   const [isFiltering, setIsFiltering] = useState(false);
   const [itineraries, setItineraries] = useState([]);
   const [availableTags, setAvailableTags] = useState([]);
+<<<<<<< HEAD
   const [sortBy, setSortBy] = useState('clone_count');
+=======
+  const [sortBy, setSortBy] = useState('rating');
+>>>>>>> master
   const [activeTag, setActiveTag] = useState(null);
   const { setSelectedItineraryId } = useModals();
   const navigate = useNavigate();
@@ -22,19 +26,59 @@ const ExplorePage = () => {
   const fetchItineraries = useCallback(async (currentSort, currentTag) => {
     setIsFiltering(true);
     try {
+<<<<<<< HEAD
       let query = supabase
         .from('itineraries')
         .select('*, profiles(username)')
+=======
+      let query;
+      
+      // Sempre buscar com avaliações para "Mais Populares"
+      query = supabase
+        .from('itineraries')
+        .select(`
+          *, 
+          profiles(username),
+          itinerary_ratings(rating)
+        `)
+>>>>>>> master
         .eq('is_public', true);
 
       if (currentTag) {
         query = query.contains('tags', [currentTag]);
       }
+<<<<<<< HEAD
       query = query.order(currentSort, { ascending: false });
 
       const { data, error } = await query;
       if (error) throw error;
       setItineraries(data || []);
+=======
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      let processedData = data || [];
+
+      // Calcular média de avaliações para todos os roteiros
+      processedData = processedData.map(itinerary => {
+        const ratings = itinerary.itinerary_ratings || [];
+        const averageRating = ratings.length > 0 
+          ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
+          : 0;
+        return { ...itinerary, averageRating };
+      });
+
+      // Ordenação
+      if (currentSort === 'rating') {
+        // "Mais Populares" agora ordena por avaliação
+        processedData.sort((a, b) => b.averageRating - a.averageRating);
+      } else if (currentSort === 'created_at') {
+        processedData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      }
+
+      setItineraries(processedData);
+>>>>>>> master
     } catch (error) {
       toast.error("Não foi possível carregar os roteiros.");
     } finally {
@@ -97,11 +141,14 @@ const ExplorePage = () => {
     }
   };
 
+<<<<<<< HEAD
   const featuredItinerary = itineraries.length > 0 ? itineraries[0] : null;
   const galleryItineraries = (sortBy === 'clone_count' && !activeTag && itineraries.length > 1) 
     ? itineraries.slice(1) 
     : itineraries;
     
+=======
+>>>>>>> master
   if (loading) {
     return (
       <div>
@@ -114,9 +161,21 @@ const ExplorePage = () => {
     );
   }
 
+<<<<<<< HEAD
   return (
     <div>
       {!activeTag && sortBy === 'clone_count' && featuredItinerary && (
+=======
+  const featuredItinerary = itineraries.length > 0 ? itineraries[0] : null;
+  // Modificação: incluir o roteiro em destaque na galeria quando em "Mais Populares"
+  const galleryItineraries = (sortBy === 'rating' && !activeTag) 
+    ? itineraries  // Mostra todos os roteiros, incluindo o em destaque
+    : itineraries;
+
+  return (
+    <div>
+      {!activeTag && sortBy === 'rating' && featuredItinerary && (
+>>>>>>> master
         <motion.div 
           className="mb-12 rounded-2xl overflow-hidden relative h-80 flex flex-col justify-end p-8 text-white shadow-lg"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}
@@ -150,6 +209,7 @@ const ExplorePage = () => {
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
         <h2 className="font-poppins text-2xl font-bold text-text-primary">Todos os Roteiros</h2>
+<<<<<<< HEAD
         <div className="flex items-center gap-4 flex-wrap justify-center">
           <div className="flex gap-2 p-1 rounded-full glass-card">
             <button onClick={() => setSortBy('created_at')} className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${sortBy === 'created_at' ? 'bg-accent-gold text-primary' : 'text-text-secondary hover:bg-secondary/50'}`}>
@@ -160,6 +220,12 @@ const ExplorePage = () => {
             </button>
           </div>
         </div>
+=======
+        <div className="flex gap-2 p-1 rounded-full glass-card">
+         <button onClick={() => setSortBy('created_at')} className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${sortBy === 'created_at' ? 'bg-accent-gold text-primary' : 'text-text-secondary hover:text-text-primary'}`}>Mais Recentes</button>
+        <button onClick={() => setSortBy('rating')} className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${sortBy === 'rating' ? 'bg-accent-gold text-primary' : 'text-text-secondary hover:text-text-primary'}`}>Mais Populares</button>
+</div>
+>>>>>>> master
       </div>
       
       <div className="flex gap-3 mb-8 overflow-x-auto pb-3 -mx-8 px-8">
